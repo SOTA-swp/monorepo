@@ -1,0 +1,30 @@
+# Dependencies
+# (pnpmがインストールしたライブラリの実体。巨大なので無視)
+/node_modules
+/.pnpm-store
+
+# Turborepo
+# (ビルドのキャッシュ。セーブ不要)
+.turbo
+dist
+build
+
+# Next.js
+# (Next.jsが作る一時ファイル)
+.next
+out
+
+# Prisma
+# (開発用のSQLiteデータベースファイル。中身が変わりすぎるので無視)
+*.db
+*.db-journal
+
+# Env
+# (パスワードなどの秘密情報を書くファイル。絶対にセーブしない)
+.env
+.env.*
+!.env.example
+
+# OS
+# (macOSが自動でつくる不要ファイル)
+.DS_Store

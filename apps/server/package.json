@@ -1,0 +1,30 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "node --watch --loader=tsx ./src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "eslint . --ext .ts"
+  },
+  "dependencies": {
+    "fastify": "^4.0.0",
+    "@fastify/websocket": "^10.0.0",
+    "yjs": "^13.0.0",
+    "y-websocket": "^2.0.0",
+    "y-leveldb": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "typescript": "latest",
+    "tsx": "^4.0.0",
+    "eslint-config-custom": "workspace:*",
+    "prettier-config-custom": "workspace:*",
+    "tsconfig": "workspace:*"
+  },
+  "prettier": "prettier-config-custom",
+  "eslintConfig": {
+    "extends": "custom"
+  }
+}
