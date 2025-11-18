@@ -22,6 +22,13 @@ const HomePage = () => {
           あなたは <strong>{user.email}</strong> としてログインしています。
         </p>
       <p>（ここに、共同編集ページへのリンクなどを今後追加します）</p>
+      <div style={{ marginTop: '20px' }}>
+          <Link href="/editor" passHref>
+            <button style={{ padding: '10px 20px', fontSize: '16px' }}>
+              会員専用エディターページへ
+            </button>
+          </Link>
+        </div>
         {/* 将来的にフェーズ6でログアウト機能を追加します */}
         {/* <button>ログアウト</button> */}
       </div>
