@@ -3,16 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "node --watch --import=tsx ./src/index.ts",
+    "dev": "tsx watch --env-file=../../.env ./src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "lint": "eslint . --ext .ts"
   },
   "dependencies": {
-    "db": "workspace:*",
-    "@fastify/cookie": "^11.0.2",
+    "@fastify/cookie": "^9.4.0",
     "@fastify/websocket": "^10.0.0",
     "bcrypt": "^6.0.0",
+    "db": "workspace:*",
     "fastify": "^4.0.0",
     "jsonwebtoken": "^9.0.2",
     "y-leveldb": "^0.1.0",
