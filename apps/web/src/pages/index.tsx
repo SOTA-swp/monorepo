@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 const HomePage = () => {
   // バックエンドからの応答を保存する場所
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, logout } = useAuth();
 
   if (isLoading) {
     return (
@@ -28,6 +28,19 @@ const HomePage = () => {
               会員専用エディターページへ
             </button>
           </Link>
+          <button 
+            onClick={logout} // 3. クリックしたら AuthContext の logout を実行
+            style={{ 
+              padding: '10px 20px', 
+              fontSize: '16px', 
+              backgroundColor: '#ffdddd', 
+              border: '1px solid #ff0000', 
+              color: '#ff0000',
+              cursor: 'pointer'
+            }}
+          >
+            ログアウト
+          </button>
         </div>
         {/* 将来的にフェーズ6でログアウト機能を追加します */}
         {/* <button>ログアウト</button> */}

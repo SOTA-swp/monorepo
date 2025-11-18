@@ -142,6 +142,28 @@ server.get('/api/me', async (request, reply) => {
   }
 })
 
+//ログアウト用
+server.post('/api/logout', async (request, reply) => {
+  try {
+    const token = request.cookies.token;
+
+    if (!token){
+      return reply.status(200).send({ message: 'すでにログアウトしています '});
+    }
+
+    reply.clearCookie('token', {
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+    });
+
+    return reply.status(200).send({ message: 'ログアウト成功'});
+  } catch (error) {
+    server.log.error(error);
+    return reply.status(500).send({ message: 'サーバー内部でエラーが発生しました'});
+  }
+});
+
 const start = async () => {
   try {
     await server.listen({ port: 4000 }); // 4000番ポートで起動

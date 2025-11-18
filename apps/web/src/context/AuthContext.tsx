@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/router';
 
 interface User {
   id: number;
@@ -10,6 +11,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   refetch: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,6 +23,7 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   const fetchMe = useCallback(async () => {
     try{
@@ -46,11 +49,25 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     fetchMe();
   }, [fetchMe]);
 
+  const logout = useCallback(async () =>{
+    try {
+      await fetch('api/logout', {
+        method: 'POST',
+      });
+    } catch (error){
+      console.error('ログアウトAPIの呼び出しに失敗', error);
+    } finally {
+      await fetchMe();
+      router.push('/');
+    }
+  }, [fetchMe, router]);
+
   const value = useMemo(() => ({
     user,
     isLoading,
     refetch: fetchMe,
-  }), [user, isLoading, fetchMe]);
+    logout: logout,
+  }), [user, isLoading, fetchMe, logout]);
 
   return (
     <AuthContext.Provider value={value}>
