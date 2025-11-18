@@ -1,33 +1,45 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { useAuth } from '../context/AuthContext';
+import Link from 'next/link';
 
 const HomePage = () => {
   // バックエンドからの応答を保存する場所
-  const [message, setMessage] = useState(
-    '...バックエンドからの応答を待っています...'
-  );
+  const { user, isLoading } = useAuth();
 
-  // ページが読み込まれた時に1回だけ実行
-  useEffect(() => {
-    // Next.jsのProxy経由でバックエンドのAPIを叩く
-    fetch('/api/hello')
-      .then((res) => res.json())
-      .then((data) => {
-        // 成功したらメッセージを更新
-        setMessage(data.message);
-      })
-      .catch((err) => {
-        // 失敗したらエラーを表示
-        setMessage('エラー: バックエンドと通信できませんでした');
-      });
-  }, []);
+  if (isLoading) {
+    return (
+      <div style={{ padding: '20px'}}>
+        <p>読み込み中...</p>
+      </div>
+    );
+  }
+
+  if (user) {
+    return (
+      <div style={{ padding: '20px' }}>
+      <h1>ようこそ</h1>
+      <p>
+          あなたは <strong>{user.email}</strong> としてログインしています。
+        </p>
+      <p>（ここに、共同編集ページへのリンクなどを今後追加します）</p>
+        {/* 将来的にフェーズ6でログアウト機能を追加します */}
+        {/* <button>ログアウト</button> */}
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '20px' }}>
-      <h1>Hello, SOTA Project!</h1>
-      <p>Next.jsは起動しています。</p>
-      <hr />
-      <h2>バックエンド通信テスト:</h2>
-      <p>{message}</p>
+      <h1>ようこそ、SOTAプロジェクトへ</h1>
+      <p>サービスを利用するには、ログインまたは会員登録が必要です。</p>
+      <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+        <Link href="/login" passHref>
+          <button style={{ padding: '10px 20px' }}>ログイン</button>
+        </Link>
+        <Link href="/register" passHref>
+          <button style={{ padding: '10px 20px' }}>会員登録</button>
+        </Link>
+      </div>
     </div>
   );
 };

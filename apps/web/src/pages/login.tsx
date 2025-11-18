@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
+import { useAuth } from '../context/AuthContext';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -7,6 +8,7 @@ const LoginPage = () => {
   const [message, setMessage] = useState('');
 
   const router = useRouter();
+  const { refetch } = useAuth();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -23,9 +25,8 @@ const LoginPage = () => {
 
     if (response.ok) {
       setMessage('ログイン成功')
-      setTimeout(() => {
-        router.push('/');
-      }, 2000);
+      await refetch();
+      router.push('/');
     } else {
       setMessage(`エラー: ${data.message}`);
     }
