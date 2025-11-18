@@ -3,25 +3,31 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "node --watch --loader=tsx ./src/index.ts",
+    "dev": "node --watch --import=tsx ./src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "lint": "eslint . --ext .ts"
   },
   "dependencies": {
-    "fastify": "^4.0.0",
+    "db": "workspace:*",
+    "@fastify/cookie": "^11.0.2",
     "@fastify/websocket": "^10.0.0",
-    "yjs": "^13.0.0",
+    "bcrypt": "^6.0.0",
+    "fastify": "^4.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "y-leveldb": "^0.1.0",
     "y-websocket": "^2.0.0",
-    "y-leveldb": "^0.1.0"
+    "yjs": "^13.0.0"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "latest",
-    "typescript": "latest",
-    "tsx": "^4.0.0",
     "eslint-config-custom": "workspace:*",
     "prettier-config-custom": "workspace:*",
-    "tsconfig": "workspace:*"
+    "tsconfig": "workspace:*",
+    "tsx": "^4.0.0",
+    "typescript": "latest"
   },
   "prettier": "prettier-config-custom",
   "eslintConfig": {

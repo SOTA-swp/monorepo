@@ -2,12 +2,16 @@
   "name": "db",
   "version": "1.0.0",
   "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "db:generate": "prisma generate",
     "db:migrate:dev": "prisma migrate dev"
   },
   "devDependencies": {
-    "prisma": "^5.0.0"
+    "prisma": "^5.0.0",
+    "typescript": "latest"
   },
   "dependencies": {
     "@prisma/client": "^5.0.0"

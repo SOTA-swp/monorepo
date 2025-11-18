@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL") // .envファイルの変数を参照
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String // 本番ではハッシュ化されたパスワードを保存
+  createdAt DateTime @default(now())
+}
+
+// 今後、Yjsのルーム管理テーブルなどもここに追加していく
+// model Room { ... }
+// model Permission { ... }

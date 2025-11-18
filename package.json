@@ -18,6 +18,7 @@
     "node": "24.11.0"
   },
   "devDependencies": {
+    "prettier": "^3.6.2",
     "turbo": "^2.6.1"
   },
   "pnpm": {
