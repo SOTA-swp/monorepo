@@ -22,10 +22,15 @@ const HomePage = () => {
           あなたは <strong>{user.email}</strong> としてログインしています。
         </p>
       <p>（ここに、共同編集ページへのリンクなどを今後追加します）</p>
-      <div style={{ marginTop: '20px' }}>
-          <Link href="/editor" passHref>
+      <div style={{ marginTop: '20px' , display: 'flex', gap: '10px' }}>
+          {/* <Link href="/editor" passHref>
             <button style={{ padding: '10px 20px', fontSize: '16px' }}>
               会員専用エディターページへ
+            </button>
+          </Link> */}
+          <Link href="/plan/1" passHref>
+            <button style={{ padding: '10px 20px', fontSize: '16px' }}>
+              テスト用共同編集室（Plan1）へ
             </button>
           </Link>
           <button 

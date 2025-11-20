@@ -9,18 +9,20 @@
     "lint": "eslint . --ext .ts,.tsx"
   },
   "dependencies": {
+    "next": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "next": "latest"
+    "y-websocket": "^2.1.0",
+    "yjs": "^13.6.27"
   },
   "devDependencies": {
+    "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
-    "@types/node": "latest",
-    "typescript": "latest",
     "eslint-config-custom": "workspace:*",
     "prettier-config-custom": "workspace:*",
-    "tsconfig": "workspace:*"
+    "tsconfig": "workspace:*",
+    "typescript": "latest"
   },
   "prettier": "prettier-config-custom",
   "eslintConfig": {

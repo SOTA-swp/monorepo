@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  // output   = "../src/generated/client"
 }
 
 datasource db {
@@ -13,8 +12,61 @@ model User {
   email     String  @unique
   password  String  // 本番ではハッシュ化されたパスワードを保存
   createdAt DateTime @default(now())
+
+  createdPlans Plan[] @relation("CreatedBy")
+  memberships PlanMember[] @relation("MemberOf")
+  likes Like[]
+  invitations Invitation[] @relation("InvitedUser")
+  sentInvites Invitation[] @relation("Inviter")
 }
 
-// 今後、Yjsのルーム管理テーブルなどもここに追加していく
-// model Room { ... }
-// model Permission { ... }
+model Plan {
+  id Int @id @default(autoincrement())
+  title String
+  description String?
+  isPublic Boolean @default(false)
+  createdAt DateTime @default(now())
+
+  creatorId Int
+  creator User @relation("CreatedBy", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  members PlanMember[]
+  likes Like[]
+  invitation Invitation[]
+}
+
+model PlanMember {
+  userId Int
+  planId Int
+  user   User @relation("MemberOf", fields: [userId], references: [id], onDelete: Cascade)
+  plan   Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  role String @default("EDITOR")
+
+  @@id([userId, planId])
+}
+
+model Invitation {
+  id           Int      @id @default(autoincrement())
+  planId       Int
+  plan         Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  
+  inviterId    Int      // 招待した人
+  inviter      User     @relation("Inviter", fields: [inviterId], references: [id], onDelete: Cascade)
+  
+  inviteeEmail String   // 招待された人のメール (F-PL-13)
+  inviteeId    Int?     // 招待された人が会員だった場合のID（null許容）
+  invitee      User?    @relation("InvitedUser", fields: [inviteeId], references: [id])
+  
+  status       String   @default("PENDING") // 状態 (PENDING, ACCEPTED, DECLINED)
+  createdAt    DateTime @default(now())
+}
+
+model Like {
+  userId Int
+  planId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan   Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@id([userId, planId]) // 複合キー
+}
