@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useAuth } from '../../context/AuthContext'; 
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
+import { Header } from '../../../components/Header';
 
 const PlanEditPage = () => {
   const router = useRouter();
@@ -39,8 +40,8 @@ const PlanEditPage = () => {
     // ▼▼▼ このデバッグコードを追加してください ▼▼▼
     provider.on('connection-close', (event: any) => {
       // ここで「隠された切断理由」を無理やり暴きます
-      console.log('切断されました。理由:', event.reason); 
-      console.log('コード:', event.code);
+      console.log('切断されました。理由:', event?.reason); 
+      console.log('コード:', event?.code);
     });
     // ▲▲▲▲▲▲
 
@@ -60,6 +61,7 @@ const PlanEditPage = () => {
 
     return () => {
       provider.disconnect();
+      provider.destroy();
       ydoc.destroy();
     };
   }, [user, planId]);
@@ -85,14 +87,16 @@ const PlanEditPage = () => {
 
   return (
     <div style={{ padding: '20px '}}>
+      <Header />
       <h1>共同編集室（計画ID: {planId}）</h1>
-      <p>
+      <div>
         参加者: <strong>{user.email}</strong>
-        <span style={{ marginLeft: '20px', color: connectionStatus === 'connected' ? 'green' : 'red '}}>
-        </span>
-      </p>
-      {/* 次のステップ(2-2)で、ここにYjsデモUIを追加します */}
-<div style={{ border: '1px solid #ccc', padding: '20px', borderRadius: '8px', marginTop: '20px' }}>
+        <div style={{ marginLeft: '20px', color: connectionStatus === 'connected' ? 'green' : 'red '}}>
+          接続状況
+        </div>
+      </div>
+
+    <div style={{ border: '1px solid #ccc', padding: '20px', borderRadius: '8px', marginTop: '20px' }}>
         <h3>📝 持ち物リスト (リアルタイム同期デモ)</h3>
         <p style={{ fontSize: '0.9rem', color: '#666' }}>
           別のタブやブラウザで同じページを開くと、入力がリアルタイムに同期されます。

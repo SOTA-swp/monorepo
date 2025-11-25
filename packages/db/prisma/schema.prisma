@@ -41,7 +41,7 @@ model PlanMember {
   user   User @relation("MemberOf", fields: [userId], references: [id], onDelete: Cascade)
   plan   Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
-  role String @default("EDITOR")
+  role String @default("VIEWER")
 
   @@id([userId, planId])
 }

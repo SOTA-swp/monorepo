@@ -42,10 +42,10 @@ importers:
         specifier: ^0.1.0
         version: 0.1.2(yjs@13.6.27)
       y-websocket:
-        specifier: ^2.0.0
+        specifier: ^2.1.0
         version: 2.1.0(yjs@13.6.27)
       yjs:
-        specifier: ^13.0.0
+        specifier: ^13.6.27
         version: 13.6.27
     devDependencies:
       '@types/bcrypt':
