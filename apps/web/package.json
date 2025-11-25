@@ -12,6 +12,7 @@
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "uuid": "^13.0.0",
     "y-websocket": "^2.1.0",
     "yjs": "^13.6.27"
   },
@@ -19,6 +20,7 @@
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "@types/uuid": "^11.0.0",
     "eslint-config-custom": "workspace:*",
     "prettier-config-custom": "workspace:*",
     "tsconfig": "workspace:*",

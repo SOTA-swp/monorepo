@@ -5,6 +5,8 @@ import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
 import { Header } from '../../../components/Header';
 import { InviteForm } from '../../../components/InviteForm';
+import { usePlanNodes } from '../../../hooks/usePlanNodes';
+import { PlanTree } from '../../../components/PlanTree/PlanTree';
 
 const PlanEditPage = () => {
   const router = useRouter();
@@ -16,7 +18,16 @@ const PlanEditPage = () => {
   const [inputValue, setInputValue] = useState('');
   const [connectionStatus, setConnectionStatus] = useState('未接続');
 
-  const ydocRef = useRef<Y.Doc | null>(null);
+  //const ydocRef = useRef<Y.Doc | null>(null);
+
+  // ydocRef.current ではなく、stateで保持している ydoc を渡す必要があるため、
+  // 既存の useEffect 内で setYDoc(ydoc) するように少し変更が必要です。
+  // もし面倒なら、一旦 ydocRef.current を使う形にHook側を合わせるか、
+  // 以下のように useState で ydoc インスタンスを管理します。
+  const [ydoc, setYdoc] = useState<Y.Doc | null>(null);
+
+  // Hookを使用
+  const { nodes, addNode, deleteNode , updateNode} = usePlanNodes(ydoc);
 
   //未ログインなら強制的にloginページに
   useEffect(() => {
@@ -29,14 +40,15 @@ const PlanEditPage = () => {
   useEffect(() => {
     if (!user || !planId || typeof planId !== 'string') return;
 
-    const ydoc = new Y.Doc();
-    ydocRef.current = ydoc;
+    const _ydoc = new Y.Doc();
+    setYdoc(_ydoc);
+    //ydocRef.current = ydoc;
 
     //WebSocketプロバイダーの作成
     const provider = new WebsocketProvider(
       `ws://localhost:4000/ws/plan`,
       String(planId),
-      ydoc
+      _ydoc
     );
     // ▼▼▼ このデバッグコードを追加してください ▼▼▼
     provider.on('connection-close', (event: any) => {
@@ -51,42 +63,44 @@ const PlanEditPage = () => {
     });
 
     //[共有データ] 'travelItems' という名前の共有配列を取得
-    const yArray = ydoc.getArray<string>('travelItems');
+    // const yArray = ydoc.getArray<string>('travelItems');
 
-    setSyncedList(yArray.toArray());
+    // setSyncedList(yArray.toArray());
 
-    //[同期] データが変更されたらReactの画面を更新する
-    yArray.observe(() => {
-      setSyncedList(yArray.toArray());
-    });
+    // //[同期] データが変更されたらReactの画面を更新する
+    // yArray.observe(() => {
+    //   setSyncedList(yArray.toArray());
+    // });
 
     return () => {
       provider.disconnect();
       provider.destroy();
-      ydoc.destroy();
+      _ydoc.destroy();
     };
   }, [user, planId]);
 
-  const addItem = () => {
-    if (inputValue.trim() && ydocRef.current) {
-      const yArray = ydocRef.current.getArray<string>('travelItems');
-      yArray.push([inputValue]);
-      setInputValue('');
-    }
-  };
+  // const addItem = () => {
+  //   if (inputValue.trim() && ydocRef.current) {
+  //     const yArray = ydocRef.current.getArray<string>('travelItems');
+  //     yArray.push([inputValue]);
+  //     setInputValue('');
+  //   }
+  // };
 
-  const deleteItem = (index: number) => {
-    if (ydocRef.current) {
-      const yArray = ydocRef.current.getArray<string>('travelItems');
-      yArray.delete(index, 1);
-    }
-  };
+  // const deleteItem = (index: number) => {
+  //   if (ydocRef.current) {
+  //     const yArray = ydocRef.current.getArray<string>('travelItems');
+  //     yArray.delete(index, 1);
+  //   }
+  // };
 
   if (isLoading || !user) {
     return <p style={{ padding: '20px ' }}>読み込み中...</p>
   }
 
   const safePlanId = Array.isArray(planId) ? planId[0] : planId;
+
+
 
   return (
     <div style={{ padding: '20px ' }}>
@@ -106,8 +120,48 @@ const PlanEditPage = () => {
         </div>
       )}
       {/* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ */}
+      {/* ▼▼▼ デバッグ用エリア ▼▼▼ */}
+      <div style={{ border: '2px dashed blue', padding: '20px', margin: '20px 0' }}>
+        <h3>🛠 開発者用データ確認ツール</h3>
 
-      <div style={{ border: '1px solid #ccc', padding: '20px', borderRadius: '8px', marginTop: '20px' }}>
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+          <button onClick={() => addNode(null, 'DAY', '1日目')}>
+            ＋ 「1日目」を追加 (Root)
+          </button>
+
+          <button onClick={() => {
+            // 簡易的に、最初の「DAY」タイプを探して、その子供を追加してみるテスト
+            const parent = nodes.find(n => n.type === 'DAY');
+            if (parent) {
+              addNode(parent.id, 'SPOT', 'テスト地点');
+            } else {
+              alert('先に「1日目」を追加してください');
+            }
+          }}>
+            ＋ 「1日目」の下に地点を追加
+          </button>
+        </div>
+
+        <pre style={{ background: '#eee', padding: '10px', fontSize: '12px' }}>
+          {/* 現在のデータ構造をそのまま表示 */}
+          {JSON.stringify(nodes, null, 2)}
+        </pre>
+      </div>
+      {/* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ */}
+
+      {/* ▼▼▼ JSON表示を削除し、ツリーコンポーネントを配置 ▼▼▼ */}
+      <h2 style={{ fontSize: '1.2rem', marginBottom: '15px' }}>工程表</h2>
+      
+      <PlanTree 
+        nodes={nodes} 
+        onAdd={addNode} 
+        onDelete={deleteNode}
+        onUpdate={updateNode}
+      />
+      
+      {/* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ */}
+
+      {/* <div style={{ border: '1px solid #ccc', padding: '20px', borderRadius: '8px', marginTop: '20px' }}>
         <h3>📝 持ち物リスト (リアルタイム同期デモ)</h3>
         <p style={{ fontSize: '0.9rem', color: '#666' }}>
           別のタブやブラウザで同じページを開くと、入力がリアルタイムに同期されます。
@@ -137,7 +191,7 @@ const PlanEditPage = () => {
           ))}
         </ul>
         {syncedList.length === 0 && <p style={{ color: '#999' }}>リストは空です</p>}
-      </div>
+      </div> */}
     </div>
   );
 };

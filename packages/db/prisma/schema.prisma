@@ -8,7 +8,7 @@ datasource db {
 }
 
 model User {
-  id        Int     @id @default(autoincrement())
+  id        String     @id @default(uuid())
   email     String  @unique
   password  String  // 本番ではハッシュ化されたパスワードを保存
   createdAt DateTime @default(now())
@@ -21,7 +21,7 @@ model User {
 }
 
 model Plan {
-  id Int @id @default(autoincrement())
+  id String @id @default(uuid())
   title String
   description String?
   isPublic Boolean @default(false)
@@ -36,8 +36,8 @@ model Plan {
 }
 
 model PlanMember {
-  userId Int
-  planId Int
+  userId String
+  planId String
   user   User @relation("MemberOf", fields: [userId], references: [id], onDelete: Cascade)
   plan   Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
@@ -48,14 +48,14 @@ model PlanMember {
 
 model Invitation {
   id           Int      @id @default(autoincrement())
-  planId       Int
+  planId       String
   plan         Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
   
-  inviterId    Int      // 招待した人
+  inviterId    String      // 招待した人
   inviter      User     @relation("Inviter", fields: [inviterId], references: [id], onDelete: Cascade)
   
   inviteeEmail String   // 招待された人のメール (F-PL-13)
-  inviteeId    Int?     // 招待された人が会員だった場合のID（null許容）
+  inviteeId    String?     // 招待された人が会員だった場合のID（null許容）
   invitee      User?    @relation("InvitedUser", fields: [inviteeId], references: [id])
   
   status       String   @default("PENDING") // 状態 (PENDING, ACCEPTED, DECLINED)
@@ -63,8 +63,8 @@ model Invitation {
 }
 
 model Like {
-  userId Int
-  planId Int
+  userId String
+  planId String
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
   plan   Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
 
