@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
-import { useAuth } from '../../context/AuthContext'; 
+import { useAuth } from '../../context/AuthContext';
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
 import { Header } from '../../../components/Header';
+import { InviteForm } from '../../../components/InviteForm';
 
 const PlanEditPage = () => {
   const router = useRouter();
@@ -40,7 +41,7 @@ const PlanEditPage = () => {
     // ▼▼▼ このデバッグコードを追加してください ▼▼▼
     provider.on('connection-close', (event: any) => {
       // ここで「隠された切断理由」を無理やり暴きます
-      console.log('切断されました。理由:', event?.reason); 
+      console.log('切断されました。理由:', event?.reason);
       console.log('コード:', event?.code);
     });
     // ▲▲▲▲▲▲
@@ -67,7 +68,7 @@ const PlanEditPage = () => {
   }, [user, planId]);
 
   const addItem = () => {
-    if (inputValue.trim() && ydocRef.current){
+    if (inputValue.trim() && ydocRef.current) {
       const yArray = ydocRef.current.getArray<string>('travelItems');
       yArray.push([inputValue]);
       setInputValue('');
@@ -81,22 +82,32 @@ const PlanEditPage = () => {
     }
   };
 
-  if (isLoading || !user){
-    return <p style={{ padding: '20px '}}>読み込み中...</p>
+  if (isLoading || !user) {
+    return <p style={{ padding: '20px ' }}>読み込み中...</p>
   }
 
+  const safePlanId = Array.isArray(planId) ? planId[0] : planId;
+
   return (
-    <div style={{ padding: '20px '}}>
+    <div style={{ padding: '20px ' }}>
       <Header />
       <h1>共同編集室（計画ID: {planId}）</h1>
       <div>
         参加者: <strong>{user.email}</strong>
-        <div style={{ marginLeft: '20px', color: connectionStatus === 'connected' ? 'green' : 'red '}}>
+        <div style={{ marginLeft: '20px', color: connectionStatus === 'connected' ? 'green' : 'red ' }}>
           接続状況
         </div>
       </div>
+      {/* ▼▼▼ ここに追加！ ▼▼▼ */}
+      {/* safePlanId がある時だけ表示します */}
+      {safePlanId && (
+        <div style={{ maxWidth: '600px', margin: '20px 0' }}>
+          <InviteForm planId={safePlanId} />
+        </div>
+      )}
+      {/* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ */}
 
-    <div style={{ border: '1px solid #ccc', padding: '20px', borderRadius: '8px', marginTop: '20px' }}>
+      <div style={{ border: '1px solid #ccc', padding: '20px', borderRadius: '8px', marginTop: '20px' }}>
         <h3>📝 持ち物リスト (リアルタイム同期デモ)</h3>
         <p style={{ fontSize: '0.9rem', color: '#666' }}>
           別のタブやブラウザで同じページを開くと、入力がリアルタイムに同期されます。
@@ -104,9 +115,9 @@ const PlanEditPage = () => {
         </p>
 
         <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-          <input 
-            type="text" 
-            value={inputValue} 
+          <input
+            type="text"
+            value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="例: パスポート、着替え..."
             style={{ flex: 1, padding: '8px' }}
@@ -114,7 +125,7 @@ const PlanEditPage = () => {
           />
           <button onClick={addItem} style={{ padding: '8px 16px' }}>追加</button>
         </div>
-        
+
         <ul style={{ listStyle: 'none', padding: 0 }}>
           {syncedList.map((item, index) => (
             <li key={index} style={{ padding: '8px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between' }}>
@@ -125,7 +136,7 @@ const PlanEditPage = () => {
             </li>
           ))}
         </ul>
-        {syncedList.length === 0 && <p style={{color: '#999'}}>リストは空です</p>}
+        {syncedList.length === 0 && <p style={{ color: '#999' }}>リストは空です</p>}
       </div>
     </div>
   );
