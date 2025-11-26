@@ -27,7 +27,7 @@ model Plan {
   isPublic Boolean @default(false)
   createdAt DateTime @default(now())
 
-  creatorId Int
+  creatorId String
   creator User @relation("CreatedBy", fields: [creatorId], references: [id], onDelete: Cascade)
 
   members PlanMember[]

@@ -73,7 +73,7 @@ export async function authRoutes(server: FastifyInstance) {
         const token = request.cookies.token;
         if (!token) return reply.status(401).send({ message: '認証されていません' });
     
-        const payload = jwt.verify(token, JWT_SECRET) as { userId: number };
+        const payload = jwt.verify(token, JWT_SECRET) as { userId: string };
         const user = await prisma.user.findUnique({
           where: { id: payload.userId },
           select: { id: true, email: true, createdAt: true },

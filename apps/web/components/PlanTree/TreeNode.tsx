@@ -45,10 +45,15 @@ export const TreeNode = ({ node, allNodes, onAdd, onDelete, onUpdate, depth = 0 
   };
 
   const getStyles = () => {
-    switch (node.type){
-      case 'DAY': return { fontWeight: 'bold', backgroundColor: '#eef' };
-      case 'PROCESS': return { color: '#666', borderLeft: '2px solid #ccc' };
-      default: return {}; // SPOTなど
+    switch (node.type) {
+      // 旧 DAY のスタイルを PROCESS に適用（または階層深度 depth で色を変えるのも良い）
+      case 'PROCESS': 
+        return { fontWeight: 'bold', backgroundColor: '#eef' };
+      case 'MOVE': 
+        // 移動は少し特殊な見た目に（例: グレー、矢印アイコンなど）
+        return { color: '#555', border: '1px dashed #999', backgroundColor: '#f9f9f9' };
+      default: // SPOT
+        return { backgroundColor: '#fff' };
     }
   }
 

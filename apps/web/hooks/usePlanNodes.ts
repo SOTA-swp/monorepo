@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import * as Y from 'yjs';
 import { v4 as uuidv4 } from 'uuid'; // UUID生成
 import { PlanNode, NodeType } from '../types/node';
+import { PARENT_ID_ROOT } from '../types/node'; // インポート
 
 export const usePlanNodes = (ydoc: Y.Doc | null) => {
   // React表示用のステート（配列として管理するとレンダリングしやすい）
@@ -18,10 +19,10 @@ export const usePlanNodes = (ydoc: Y.Doc | null) => {
     const updateState = () => {
       // Mapの値（Nodeオブジェクト）を全て取り出して配列にする
       const nodeArray = Array.from(yMap.values());
-      
+
       // displayOrder順に並べ替えておくと使いやすい
       nodeArray.sort((a, b) => a.displayOrder - b.displayOrder);
-      
+
       setNodes(nodeArray);
     };
 
@@ -46,21 +47,22 @@ export const usePlanNodes = (ydoc: Y.Doc | null) => {
   const addNode = useCallback((
     parentId: string | null,
     type: NodeType,
-    name: string
+    name: string,
+    extraData: { locationId?: string; startTime?: string } = {}
   ) => {
     if (!ydoc) return;
 
     const yMap = ydoc.getMap<PlanNode>('planNodes');
-    
+
     // トランザクション: 一連の変更をひとまとめにする（Undo/Redoで重要）
     ydoc.transact(() => {
       const id = uuidv4();
-      
+
       // 同じ親を持つノードの中で、一番後ろに追加するための計算
       // (本来はもっと賢いロジックが必要ですが、まずは簡易的に実装)
       const siblings = Array.from(yMap.values()).filter(n => n.parentId === parentId);
-      const maxOrder = siblings.length > 0 
-        ? Math.max(...siblings.map(n => n.displayOrder)) 
+      const maxOrder = siblings.length > 0
+        ? Math.max(...siblings.map(n => n.displayOrder))
         : 0;
 
       const newNode: PlanNode = {
@@ -70,6 +72,7 @@ export const usePlanNodes = (ydoc: Y.Doc | null) => {
         name,
         displayOrder: maxOrder + 1000, // 余裕を持って番号を振る
         timeType: 'NONE',
+        ...extraData,
       };
 
       // Mapにセット (Key=UUID, Value=Nodeオブジェクト)
@@ -81,20 +84,34 @@ export const usePlanNodes = (ydoc: Y.Doc | null) => {
   const deleteNode = useCallback((nodeId: string) => {
     if (!ydoc) return;
     const yMap = ydoc.getMap<PlanNode>('planNodes');
-    
+
     ydoc.transact(() => {
 
       const deleteRecursively = (id: string) => {
 
-        const children = Array.from(yMap.values()).filter(n => n.parentId === id);
+        const allNodes = Array.from(yMap.values());
+        const children = allNodes.filter(n => n.parentId === id);
+
+        const existsBefore = yMap.has(id);
+        console.log(`[Delete] ID: ${id} 削除開始... (存在: ${existsBefore})`);
+
+        if (existsBefore) {
+          yMap.delete(id);
+
+          // 直後に確認！
+          const existsAfter = yMap.has(id);
+          console.log(`[Delete] ID: ${id} 削除結果 -> ${existsAfter ? '❌ 失敗（まだいる）' : '✅ 成功（消えた）'}`);
+        } else {
+          console.warn(`[Delete] ID: ${id} を消そうとしましたが、既にいませんでした`);
+        }
         // 本来はここで「子ノード」も再帰的に探して削除すべきですが、
         // まずは対象ノードのみ削除します。
         children.forEach(child => {
-            deleteRecursively(child.id);
+          deleteRecursively(child.id);
         });
-        if (yMap.has(nodeId)) {
-          yMap.delete(nodeId);
-        }
+        // if (yMap.has(nodeId)) {
+        //   yMap.delete(nodeId);
+        // }
       };
       deleteRecursively(nodeId);
     });

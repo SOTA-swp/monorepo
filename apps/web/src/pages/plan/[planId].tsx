@@ -7,6 +7,9 @@ import { Header } from '../../../components/Header';
 import { InviteForm } from '../../../components/InviteForm';
 import { usePlanNodes } from '../../../hooks/usePlanNodes';
 import { PlanTree } from '../../../components/PlanTree/PlanTree';
+import { usePlanLocations } from '../../../hooks/usePlanLocations';
+
+import { PARENT_ID_ROOT } from '../../../types/node';
 
 const PlanEditPage = () => {
   const router = useRouter();
@@ -27,7 +30,9 @@ const PlanEditPage = () => {
   const [ydoc, setYdoc] = useState<Y.Doc | null>(null);
 
   // Hookを使用
-  const { nodes, addNode, deleteNode , updateNode} = usePlanNodes(ydoc);
+  const { nodes, addNode, deleteNode, updateNode } = usePlanNodes(ydoc);
+
+  const { addLocation, locationMap } = usePlanLocations(ydoc);
 
   //未ログインなら強制的にloginページに
   useEffect(() => {
@@ -125,13 +130,13 @@ const PlanEditPage = () => {
         <h3>🛠 開発者用データ確認ツール</h3>
 
         <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-          <button onClick={() => addNode(null, 'DAY', '1日目')}>
+          <button onClick={() => addNode('root', 'PROCESS', 'test')}>
             ＋ 「1日目」を追加 (Root)
           </button>
 
           <button onClick={() => {
             // 簡易的に、最初の「DAY」タイプを探して、その子供を追加してみるテスト
-            const parent = nodes.find(n => n.type === 'DAY');
+            const parent = nodes.find(n => n.type === 'PROCESS');
             if (parent) {
               addNode(parent.id, 'SPOT', 'テスト地点');
             } else {
@@ -149,17 +154,43 @@ const PlanEditPage = () => {
       </div>
       {/* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ */}
 
+      {/* ▼▼▼ デバッグエリアの修正 ▼▼▼ */}
+      <div style={{ border: '2px dashed blue', padding: '20px', margin: '20px 0' }}>
+        <h3>🛠 ロケーション連携テスト</h3>
+
+        <button onClick={() => {
+          // 1. まずロケーションを作る（本来は地図から選択）
+          const locId = addLocation('東京タワー', 35.65858, 139.74543, '東京都港区芝公園');
+
+          // 2. そのIDを持って、SPOTノードを作る
+          if (locId) {
+            addNode(PARENT_ID_ROOT, 'SPOT', '東京タワー観光', {locationId: locId} );
+            // ※注意: addNodeに locationId を渡せるように修正が必要です（後述）
+            // 現状の addNode は (parentId, type, name) しか受け取っていないため、
+            // 作成後に updateNode で紐付ける形をとります。
+
+            // 本当は addNode の返り値で NodeID が欲しいですが、
+            // 非同期や実装の都合上、ここでは簡易的に「更新」で紐付けます。
+            // (本来は addNode を拡張すべき)
+          }
+        }}>
+          ＋ 東京タワー（SPOT）を追加
+        </button>
+      </div>
+
       {/* ▼▼▼ JSON表示を削除し、ツリーコンポーネントを配置 ▼▼▼ */}
       <h2 style={{ fontSize: '1.2rem', marginBottom: '15px' }}>工程表</h2>
-      
-      <PlanTree 
-        nodes={nodes} 
-        onAdd={addNode} 
+
+      <PlanTree
+        nodes={nodes}
+        onAdd={addNode}
         onDelete={deleteNode}
         onUpdate={updateNode}
       />
-      
+
       {/* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ */}
+
+
 
       {/* <div style={{ border: '1px solid #ccc', padding: '20px', borderRadius: '8px', marginTop: '20px' }}>
         <h3>📝 持ち物リスト (リアルタイム同期デモ)</h3>

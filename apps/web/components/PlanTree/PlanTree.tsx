@@ -1,6 +1,7 @@
 import React from 'react';
 import { PlanNode, NodeType } from '../../types/node';
 import { TreeNode } from './TreeNode';
+import { PARENT_ID_ROOT } from '../../types/node'; // インポート
 
 interface PlanTreeProps {
   nodes: PlanNode[]; // フラットな全ノードリスト
@@ -11,13 +12,13 @@ interface PlanTreeProps {
 
 export const PlanTree = ({ nodes, onAdd, onDelete, onUpdate}: PlanTreeProps) => {
   // ルート要素（親がいないノード）のみを抽出
-  const rootNodes = nodes.filter(n => n.parentId === null);
+  const rootNodes = nodes.filter(n => n.parentId === PARENT_ID_ROOT);
 
   return (
     <div className="plan-tree-container">
       {/* ルート要素の追加ボタン */}
       <button 
-        onClick={() => onAdd(null, 'DAY', `新しい日程`)}
+        onClick={() => onAdd(PARENT_ID_ROOT, 'PROCESS', `新しい日程`)}
         style={{ 
           width: '100%', 
           padding: '10px', 

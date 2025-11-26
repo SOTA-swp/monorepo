@@ -22,7 +22,7 @@ export async function planRoutes(server: FastifyInstance) {
       const token = request.cookies.token;
       if (!token) return reply.status(401).send({ message: 'ログインしてください' });
       
-      const payload = jwt.verify(token, JWT_SECRET) as { userId: number };
+      const payload = jwt.verify(token, JWT_SECRET) as { userId: string };
       const userId = payload.userId;
 
       // 2. 入力チェック
@@ -71,7 +71,7 @@ export async function planRoutes(server: FastifyInstance) {
         const token = request.cookies.token;
         if (!token) return reply.status(401).send({ message: 'ログインしてください' });
         
-        const payload = jwt.verify(token, process.env.JWT_SECRET!) as { userId: number };
+        const payload = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
         const currentUserId = payload.userId;
 
         const { planId } = request.params;
@@ -86,7 +86,7 @@ export async function planRoutes(server: FastifyInstance) {
           where: {
             userId_planId: {
               userId: currentUserId,
-              planId: parseInt(planId, 10),
+              planId: planId,
             },
           },
         });
@@ -109,7 +109,7 @@ export async function planRoutes(server: FastifyInstance) {
           where: {
             userId_planId: {
               userId: targetUser.id,
-              planId: parseInt(planId, 10),
+              planId: planId,
             },
           },
         });
@@ -122,7 +122,7 @@ export async function planRoutes(server: FastifyInstance) {
         const newMember = await prisma.planMember.create({
           data: {
             userId: targetUser.id,
-            planId: parseInt(planId, 10),
+            planId: planId,
             role: 'EDITOR', // デフォルトで編集者として招待
           },
           include: {

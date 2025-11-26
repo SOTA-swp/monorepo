@@ -25,7 +25,7 @@ export async function planSocketRoutes(server: FastifyInstance) {
     }
 
     const token = request.cookies.token;
-    let userId: number;
+    let userId: string;
 
     if (!token) {
       connection.socket.close(1008, '認証トークンがありません');
@@ -33,7 +33,7 @@ export async function planSocketRoutes(server: FastifyInstance) {
     }
 
     try {
-      const payload = jwt.verify(token, JWT_SECRET) as { userId: number };
+      const payload = jwt.verify(token, JWT_SECRET) as { userId: string };
       userId = payload.userId;
     } catch (error) {
       connection.socket.close(1008, '認証トークンが無効です');
@@ -43,7 +43,7 @@ export async function planSocketRoutes(server: FastifyInstance) {
     try {
       const membership = await prisma.planMember.findUnique({
         where: {
-          userId_planId: { userId: userId, planId: parseInt(planId, 10) }
+          userId_planId: { userId: userId, planId: planId}
         },
       });
 

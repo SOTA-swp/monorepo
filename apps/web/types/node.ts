@@ -4,7 +4,9 @@
  * - SPOT: 具体的な場所・行動
  * - PROCESS: 移動や手続きなど
  */
-export type NodeType = 'DAY' | 'PROCESS' | 'SPOT';
+export type NodeType = 'PROCESS' | 'SPOT' | 'MOVE';
+
+export const PARENT_ID_ROOT = 'root';
 
 /**
  * 時間指定の種類
@@ -13,6 +15,19 @@ export type NodeType = 'DAY' | 'PROCESS' | 'SPOT';
  * - RANGE: 範囲の時間（開始と終了、または開始と所要時間）
  */
 export type TimeType = 'NONE' | 'POINT' | 'RANGE';
+
+export interface PlanLocation {
+  id: string;        // Google Place ID または UUID
+  name: string;      // 場所の名前
+  address?: string;  // 住所
+  lat: number;       // 緯度
+  lng: number;       // 経度
+  placeId?: string;  // Google Maps Place ID
+
+  // 将来的な拡張
+  thumbnail?: string;
+  googleUrl?: string;
+}
 
 /**
  * Yjsに保存されるNodeデータのインターフェース
@@ -39,4 +54,10 @@ export interface PlanNode {
   
   // 場所情報
   locationId?: string;  // Locationデータへの参照
+
+  // --- [Idea Space View] 座標情報 ---
+  // ホワイトボード上での位置。
+  // タイムラインに組み込まれていない（候補）状態でも、この座標で表示されます。
+  x?: number;
+  y?: number;
 }
