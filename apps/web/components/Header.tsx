@@ -1,5 +1,4 @@
 import Link from 'next/link';
-// アイコンを使うと直感的です（例: lucide-react や heroicons など）
 // import { ArrowLeft } from 'lucide-react'; 
 
 export const Header = () => {
