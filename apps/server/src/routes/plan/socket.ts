@@ -56,7 +56,7 @@ export async function planSocketRoutes(server: FastifyInstance) {
 
       // ----------------------------------------------------------------
       connection.socket.binaryType = 'nodebuffer';
-      //YjsとFastify間でのバイナリ形式の違いを無理やり揃える。今後これが原因となる不具合の発生可能性あり
+      //！！！YjsとFastify間でのバイナリ形式の違いを無理やり揃える。今後これが原因となる不具合の発生可能性あり
       Object.defineProperty(connection.socket, 'binaryType', {
         get: () => 'nodebuffer',
         set: () => { },
