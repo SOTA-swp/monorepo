@@ -1,23 +1,24 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo} from 'react';
 import * as Y from 'yjs';
 import { v4 as uuidv4 } from 'uuid';
 import { PlanLocation } from '@/features/editor/types/node';
 
 export const usePlanLocations = (ydoc: Y.Doc | null) => {
   const [locations, setLocations] = useState<PlanLocation[]>([]);
-  const [locationMap, setLocationMap] = useState<Record<string, PlanLocation>>({});
+
+  const locationMap = useMemo(() => {
+    const dict: Record<string, PlanLocation> = {};
+    locations.forEach(loc => { dict[loc.id] = loc; });
+    return dict;
+  }, [locations]);
+
   useEffect(() => {
     if (!ydoc) return;
 
     const yMap = ydoc.getMap<PlanLocation>('planLocations');
 
     const updateState = () => {
-      const locs = Array.from(yMap.values());
-      setLocations(locs);
-
-      const dict: Record<string, PlanLocation> = {};
-      locs.forEach(loc => { dict[loc.id] = loc; });
-      setLocationMap(dict);
+      setLocations(Array.from(yMap.values()));
     };
 
     updateState();
