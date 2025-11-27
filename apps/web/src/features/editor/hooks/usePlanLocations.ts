@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import * as Y from 'yjs';
 import { v4 as uuidv4 } from 'uuid';
-import { PlanLocation } from '../types/node';
+import { PlanLocation } from '@/features/editor/types/node';
 
 export const usePlanLocations = (ydoc: Y.Doc | null) => {
   const [locations, setLocations] = useState<PlanLocation[]>([]);

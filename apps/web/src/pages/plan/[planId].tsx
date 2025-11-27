@@ -1,15 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
-import { Header } from '../../../components/Header';
-import { InviteForm } from '../../../components/InviteForm';
-import { usePlanNodes } from '../../../hooks/usePlanNodes';
-import { PlanTree } from '../../../components/PlanTree/PlanTree';
-import { usePlanLocations } from '../../../hooks/usePlanLocations';
+import { Header } from '@/components/Header';
+import { InviteForm } from '@/features/editor/components/InviteForm';
+import { usePlanNodes } from '@/features/editor/hooks/usePlanNodes';
+import { PlanTree } from '@/features/editor/components/TimelineView/PlanTree/PlanTree';
+import { usePlanLocations } from '@/features/editor/hooks/usePlanLocations';
 
-import { PARENT_ID_ROOT } from '../../../types/node';
+import { PARENT_ID_ROOT } from '@/features/editor/types/node';
 
 const PlanEditPage = () => {
   const router = useRouter();
@@ -164,7 +164,7 @@ const PlanEditPage = () => {
 
           // 2. そのIDを持って、SPOTノードを作る
           if (locId) {
-            addNode(PARENT_ID_ROOT, 'SPOT', '東京タワー観光', {locationId: locId} );
+            addNode(PARENT_ID_ROOT, 'SPOT', '東京タワー観光', { locationId: locId });
             // ※注意: addNodeに locationId を渡せるように修正が必要です（後述）
             // 現状の addNode は (parentId, type, name) しか受け取っていないため、
             // 作成後に updateNode で紐付ける形をとります。

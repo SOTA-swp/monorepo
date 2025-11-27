@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import * as Y from 'yjs';
 import { v4 as uuidv4 } from 'uuid'; // UUID生成
-import { PlanNode, NodeType } from '../types/node';
-import { PARENT_ID_ROOT } from '../types/node'; // インポート
+import { PlanNode, NodeType } from '@/features/editor/types/node';
+import { PARENT_ID_ROOT } from '@/features/editor/types/node'; // インポート
 
 export const usePlanNodes = (ydoc: Y.Doc | null) => {
   // React表示用のステート（配列として管理するとレンダリングしやすい）

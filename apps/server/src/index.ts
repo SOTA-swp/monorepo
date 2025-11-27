@@ -1,11 +1,11 @@
 import Fastify from 'fastify';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
-import { setupYjsPersistence } from './lib/yjsConfig';
+import { setupYjsPersistence } from './lib/yjs/setup';
 import { authRoutes } from './routes/auth';
-import { planSocketRoutes } from './routes/planSocket';
+import { planSocketRoutes } from './routes/plan/socket';
 import fastifyWebsocket from '@fastify/websocket';
-import { planRoutes } from './routes/plans';
+import { planRoutes } from './routes/plan';
 
 // Yjs永続化の初期設定
 setupYjsPersistence();

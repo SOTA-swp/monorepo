@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { PlanNode, NodeType } from '../../types/node';
+import { PlanNode, NodeType } from '@/features/editor/types/node';
 
 interface TreeNodeProps {
   node: PlanNode;
@@ -47,9 +47,9 @@ export const TreeNode = ({ node, allNodes, onAdd, onDelete, onUpdate, depth = 0 
   const getStyles = () => {
     switch (node.type) {
       // 旧 DAY のスタイルを PROCESS に適用（または階層深度 depth で色を変えるのも良い）
-      case 'PROCESS': 
+      case 'PROCESS':
         return { fontWeight: 'bold', backgroundColor: '#eef' };
-      case 'MOVE': 
+      case 'MOVE':
         // 移動は少し特殊な見た目に（例: グレー、矢印アイコンなど）
         return { color: '#555', border: '1px dashed #999', backgroundColor: '#f9f9f9' };
       default: // SPOT
@@ -60,9 +60,9 @@ export const TreeNode = ({ node, allNodes, onAdd, onDelete, onUpdate, depth = 0 
   return (
     <div style={{ marginLeft: depth * 20, marginBottom: '5px' }}>
       {/* ノード本体の表示エリア */}
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
         gap: '10px',
         padding: '8px',
         border: '1px solid #ddd',
@@ -87,7 +87,7 @@ export const TreeNode = ({ node, allNodes, onAdd, onDelete, onUpdate, depth = 0 
               style={{ width: '100%', padding: '4px', fontSize: 'inherit' }}
             />
           ) : (
-            <span 
+            <span
               onClick={() => setIsEditing(true)} // クリックで編集開始
               style={{ cursor: 'text', display: 'inline-block', width: '100%', minHeight: '1.2em' }}
               title="クリックして編集"
@@ -97,22 +97,22 @@ export const TreeNode = ({ node, allNodes, onAdd, onDelete, onUpdate, depth = 0 
           )}
         </div>
         {/* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ */}
-        
+
         {/* 名前 */}
         <span style={{ flex: 1 }}>{node.name}</span>
 
         {/* 操作ボタン群 */}
         {/* DAYタイプなら、子供（SPOT）を追加できるボタンを表示 */}
-          <button
-            onClick={() => onAdd(node.id, 'SPOT', '新しいスポット')}
-            style={{ fontSize: '0.8rem', cursor: 'pointer' }}
-            title="この下に子ノードを追加"
-          >
-            ＋地点追加
-          </button>
-        
-        
-        <button 
+        <button
+          onClick={() => onAdd(node.id, 'SPOT', '新しいスポット')}
+          style={{ fontSize: '0.8rem', cursor: 'pointer' }}
+          title="この下に子ノードを追加"
+        >
+          ＋地点追加
+        </button>
+
+
+        <button
           onClick={() => onDelete(node.id)}
           style={{ fontSize: '0.8rem', color: 'red', cursor: 'pointer', border: 'none', background: 'none' }}
         >

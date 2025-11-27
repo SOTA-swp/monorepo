@@ -1,5 +1,5 @@
 import { setPersistence } from 'y-websocket/bin/utils';
-import { persistence } from '../yjsPersistence';
+import { persistence } from './persistence';
 import * as Y from 'yjs';
 
 //y-leveldbに保存する処理
