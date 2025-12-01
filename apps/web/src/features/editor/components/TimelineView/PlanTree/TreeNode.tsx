@@ -3,15 +3,13 @@ import { PlanNode, NodeType } from '@/features/editor/types/node';
 
 interface TreeNodeProps {
   node: PlanNode;
-  allNodes: PlanNode[];
   onAdd: (parentId: string, type: NodeType, name: string) => void;
   onDelete: (id: string) => void;
   onUpdate: (id: string, updates: Partial<PlanNode>) => void;
   depth?: number;
 }
 
-export const TreeNode = ({ node, allNodes, onAdd, onDelete, onUpdate, depth = 0 }: TreeNodeProps) => {
-  const children = allNodes.filter(n => n.parentId === node.id);
+export const TreeNode = ({ node, onAdd, onDelete, onUpdate, depth = 0 }: TreeNodeProps) => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(node.name);
@@ -104,7 +102,10 @@ export const TreeNode = ({ node, allNodes, onAdd, onDelete, onUpdate, depth = 0 
         {/* 操作ボタン群 */}
         {/* DAYタイプなら、子供（SPOT）を追加できるボタンを表示 */}
         <button
-          onClick={() => onAdd(node.id, 'SPOT', '新しいスポット')}
+          onClick={(e) => {
+            e.stopPropagation();
+            onAdd(node.id, 'SPOT', '新しいスポット')
+          }}
           style={{ fontSize: '0.8rem', cursor: 'pointer' }}
           title="この下に子ノードを追加"
         >
@@ -113,29 +114,16 @@ export const TreeNode = ({ node, allNodes, onAdd, onDelete, onUpdate, depth = 0 
 
 
         <button
-          onClick={() => onDelete(node.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(node.id)
+          }
+        }
           style={{ fontSize: '0.8rem', color: 'red', cursor: 'pointer', border: 'none', background: 'none' }}
         >
           削除
         </button>
       </div>
-
-      {/* 2. 子供がいれば、ここで再帰的にレンダリングする（入れ子） */}
-      {children.length > 0 && (
-        <div className="children-container">
-          {children.map(child => (
-            <TreeNode
-              key={child.id}
-              node={child}
-              allNodes={allNodes}
-              onAdd={onAdd}
-              onDelete={onDelete}
-              onUpdate={onUpdate}
-              depth={depth + 1} // 深さを1つ増やす
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }
