@@ -3,9 +3,11 @@ import { Map, Marker, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { PlanNode } from '@/features/editor/types/node';
 import { PlanLocation } from '@/features/editor/types/node';
 import { getSortedFlatNodes } from '@/features/editor/utils/treeUtils';
+import { FlatPlanNodeV2 } from '@/features/editor/utils/v2/structureUtils';
 
 interface PlanMapProps {
-  nodes: PlanNode[];
+  //nodes: PlanNode[];
+  nodes: FlatPlanNodeV2[];
   locationMap: Record<string, PlanLocation>;
 }
 
@@ -57,10 +59,8 @@ export const PlanMap = ({ nodes, locationMap }: PlanMapProps) => {
   // 1. ノードを訪問順に並べ替え、ロケーション情報を持つものだけを抽出する
   // ここで「論理的な経路データ」を作成します
   const routeCoordinates = useMemo(() => {
-    const sortedNodes = getSortedFlatNodes(nodes);
-    
-    // ロケーションIDを持ち、かつロケーション辞書にデータが存在するもの
-    return sortedNodes
+
+    return nodes
       .filter(node => node.locationId && locationMap[node.locationId])
       .map(node => {
         const loc = locationMap[node.locationId!];
@@ -71,6 +71,7 @@ export const PlanMap = ({ nodes, locationMap }: PlanMapProps) => {
           name: loc.name
         };
       });
+
   }, [nodes, locationMap]);
 
   // 経路データから座標リスト（ポリライン用）を作成

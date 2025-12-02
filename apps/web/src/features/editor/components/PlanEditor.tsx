@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/context/AuthContext';
 import * as Y from 'yjs';
@@ -13,6 +13,14 @@ import { LocationSearch } from '@/features/editor/components/LocationSearch';
 import { PlanMap } from './MapView/PlanMap';
 import { PARENT_ID_ROOT } from '@/features/editor/types/node';
 
+import { usePlanData } from '@/features/editor/hooks/v2/usePlanData';
+import { usePlanTree } from '@/features/editor/hooks/v2/usePlanTree';
+import { migrateV1toV2 } from '@/features/editor/utils/v2/migration';
+
+import { v4 as uuidv4 } from 'uuid';
+
+import { buildFlatTreeV2, FlatPlanNodeV2 } from '@/features/editor/utils/v2/structureUtils';
+
 export const PlanEditor = () => {
   const router = useRouter();
   const { planId } = router.query;
@@ -25,10 +33,18 @@ export const PlanEditor = () => {
 
   const [ydoc, setYdoc] = useState<Y.Doc | null>(null);
 
-  // Hookを使用
+  // --- Hooks ---
+  // V1 (既存: まだMap用などに残しておく)
   const { nodes, addNode, deleteNode, updateNode } = usePlanNodes(ydoc);
-
   const { addLocation, locationMap } = usePlanLocations(ydoc);
+
+  // ★ V2 (新規)
+  const { nodeMap, createNodeData, updateNodeData, deleteNodeData } = usePlanData(ydoc);
+  const { structure, registerNodeToTree, unregisterNodeFromTree, moveNodeInTree } = usePlanTree(ydoc);
+
+  const flatNodes = useMemo<FlatPlanNodeV2[]>(() => {
+    return buildFlatTreeV2(structure, nodeMap);
+  }, [structure, nodeMap]);
 
   useEffect(() => {
     // planIdが無いときは何もしない
@@ -93,9 +109,14 @@ export const PlanEditor = () => {
     const locationId = addLocation(place.name, place.lat, place.lng, place.address);
 
     if (locationId) {
-      // B. ノードを作成し、ロケーションIDを紐付ける (Yjs: planNodes)
-      // ここではルートに追加していますが、「現在選択中のノードの下に追加」などが将来的には理想です
-      addNode(PARENT_ID_ROOT, 'SPOT', place.name, { locationId });
+      const newNodeId = uuidv4();
+
+      // 3. V2データを作成 (中身)
+      createNodeData(newNodeId, 'SPOT', place.name, { locationId });
+
+      // 4. V2ツリー構造に登録 (構造)
+      // ここではルートの末尾に追加します
+      registerNodeToTree(PARENT_ID_ROOT, newNodeId);
     }
   };
 
@@ -120,7 +141,7 @@ export const PlanEditor = () => {
     //   {/* ▼▼▼ 検索フォームの配置 ▼▼▼ */}
     //   <div style={{ maxWidth: '600px', margin: '0 auto 30px' }}>
     //     <h3>📍 新しいスポットを追加</h3>
-        
+
     //     {/* APIキーがないと動かないため、動作確認時はキー設定を確認してください */}
     //     <LocationSearch onPlaceSelect={handlePlaceSelect} />
     //   </div>
@@ -188,19 +209,19 @@ export const PlanEditor = () => {
     // height: 100vh で画面の高さいっぱいに広げます。
     // flex-direction: column で「ヘッダー」と「メインエリア」を縦に積みます。
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-      
+
       {/* ヘッダーエリア: 高さは中身に合わせて自動(flex: 0 0 auto) */}
       <div style={{ flex: '0 0 auto' }}>
         <Header />
       </div>
-      
+
       {/* 【解説B】 メインエリア: 残りの高さをすべて使う (flex: 1 1 auto) */}
       {/* display: flex で「左カラム」と「右カラム」を横に並べます */}
       {/* overflow: hidden で、画面全体がスクロールしてしまうのを防ぎます */}
       <div style={{ flex: '1 1 auto', display: 'flex', overflow: 'hidden' }}>
-        
+
         {/* --- 左カラム: 操作パネル --- */}
-        <div style={{ 
+        <div style={{
           width: '400px',        // 幅を固定
           minWidth: '300px',     // 最小幅を保証
           borderRight: '1px solid #ddd', // 右側に境界線
@@ -231,13 +252,22 @@ export const PlanEditor = () => {
             <LocationSearch onPlaceSelect={handlePlaceSelect} />
           </div>
 
-          {/* ツリービュー (工程表) */}
-          <h2 style={{ fontSize: '1.2rem', marginBottom: '15px' }}>工程表</h2>
-          <PlanTree 
-            nodes={nodes} 
-            onAdd={addNode} 
-            onDelete={deleteNode} 
-            onUpdate={updateNode} 
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '15px' }}>工程表 (V2)</h2>
+
+          {/* ★ PlanTree に V2 のデータと関数を渡す */}
+          <PlanTree
+            // データ (Data & Structure)
+            nodeMap={nodeMap}
+            structure={structure}
+
+            // 操作関数 (V2 Hooks)
+            onCreateNode={createNodeData}
+            onUpdateNode={updateNodeData}
+            onDeleteNode={deleteNodeData}
+
+            onRegisterTree={registerNodeToTree}
+            onUnregisterTree={unregisterNodeFromTree}
+            onMoveTree={moveNodeInTree}
           />
         </div>
 
@@ -248,7 +278,7 @@ export const PlanEditor = () => {
             nodes: 階層構造と順序を知るために必要
             locationMap: 各ノードの具体的な座標(lat, lng)を知るために必要
           */}
-          <PlanMap nodes={nodes} locationMap={locationMap} />
+          <PlanMap nodes={flatNodes} locationMap={locationMap} />
         </div>
 
       </div>

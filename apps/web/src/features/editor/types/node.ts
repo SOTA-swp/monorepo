@@ -1,19 +1,7 @@
-/**
- * ノードの役割を定義する型
- * - DAY: 日程（例：1日目）
- * - SPOT: 具体的な場所・行動
- * - PROCESS: 移動や手続きなど
- */
 export type NodeType = 'PROCESS' | 'SPOT' | 'MOVE';
 
 export const PARENT_ID_ROOT = 'root';
 
-/**
- * 時間指定の種類
- * - NONE: 時間指定なし
- * - POINT: 点の時間（開始のみ）
- * - RANGE: 範囲の時間（開始と終了、または開始と所要時間）
- */
 export type TimeType = 'NONE' | 'POINT' | 'RANGE';
 
 export interface PlanLocation {
@@ -23,16 +11,10 @@ export interface PlanLocation {
   lat: number;       // 緯度
   lng: number;       // 経度
   placeId?: string;  // Google Maps Place ID
-
-  // 将来的な拡張
   thumbnail?: string;
   googleUrl?: string;
 }
 
-/**
- * Yjsに保存されるNodeデータのインターフェース
- * フラットなMap構造で管理されるため、parentIdで階層を表現します。
- */
 export interface PlanNode {
   // システム識別用
   id: string;          // UUID (例: "550e8400-e29b...")
@@ -61,3 +43,29 @@ export interface PlanNode {
   x?: number;
   y?: number;
 }
+
+//--------------------------V2--------------------------------------------
+export interface PlanNodeData {
+  id: string;
+  type: NodeType;
+  name: string;
+
+  locationId?: string;
+
+  createdAt?: number;
+  // 時間管理
+  timeType?: TimeType;
+  startTime?: string;   // ISO 8601形式 (例: "2025-11-25T10:00:00Z")
+  endTime?: string;     // ISO 8601形式
+  duration?: number;    // 分単位
+
+  x?: number;
+  y?: number;
+}
+
+/**
+ * 構造データのイメージ (型定義としてはコードに出ないが、Yjs上の構造)
+ * planStructure (Y.Map)
+ * Key: ParentNodeId (ルートの場合は "root")
+ * Value: Y.Array<string> (子ノードIDのリスト)
+ */
