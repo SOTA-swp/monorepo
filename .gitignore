@@ -1,6 +1,6 @@
 # Dependencies
 # (pnpmがインストールしたライブラリの実体。巨大なので無視)
-/node_modules
+node_modules/
 /.pnpm-store
 
 # Turborepo
