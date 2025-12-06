@@ -15,40 +15,12 @@ export interface PlanLocation {
   googleUrl?: string;
 }
 
-export interface PlanNode {
-  // システム識別用
-  id: string;          // UUID (例: "550e8400-e29b...")
-  parentId: string | null; // ルート要素の場合はnull
-
-  // 基本プロパティ
-  type: NodeType;
-  name: string;        // 名称
-  displayOrder: number; // 同一親内での並び順 (1000, 2000...のように間隔を空けるのがコツ)
-
-  // 詳細プロパティ (オプション)
-  description?: string; // メモ
-  
-  // 時間管理
-  timeType: TimeType;
-  startTime?: string;   // ISO 8601形式 (例: "2025-11-25T10:00:00Z")
-  endTime?: string;     // ISO 8601形式
-  duration?: number;    // 分単位
-  
-  // 場所情報
-  locationId?: string;  // Locationデータへの参照
-
-  // --- [Idea Space View] 座標情報 ---
-  // ホワイトボード上での位置。
-  // タイムラインに組み込まれていない（候補）状態でも、この座標で表示されます。
-  x?: number;
-  y?: number;
-}
-
-//--------------------------V2--------------------------------------------
 export interface PlanNodeData {
   id: string;
   type: NodeType;
   name: string;
+
+  description?: string;
 
   locationId?: string;
 
@@ -69,3 +41,35 @@ export interface PlanNodeData {
  * Key: ParentNodeId (ルートの場合は "root")
  * Value: Y.Array<string> (子ノードIDのリスト)
  */
+
+
+
+// export interface PlanNode {
+//   // システム識別用
+//   id: string;          // UUID (例: "550e8400-e29b...")
+//   parentId: string | null; // ルート要素の場合はnull
+
+//   // 基本プロパティ
+//   type: NodeType;
+//   name: string;        // 名称
+//   displayOrder: number; 
+
+//   // 詳細プロパティ (オプション)
+//   description?: string; // メモ
+  
+//   // 時間管理
+//   timeType: TimeType;
+//   startTime?: string;   // ISO 8601形式 (例: "2025-11-25T10:00:00Z")
+//   endTime?: string;     // ISO 8601形式
+//   duration?: number;    // 分単位
+  
+//   // 場所情報
+//   locationId?: string;  // Locationデータへの参照
+
+//   // --- [Idea Space View] 座標情報 ---
+//   // ホワイトボード上での位置。
+//   // タイムラインに組み込まれていない（候補）状態でも、この座標で表示されます。
+//   x?: number;
+//   y?: number;
+// }
+

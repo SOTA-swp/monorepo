@@ -1,13 +1,14 @@
 import React, { useState, useMemo } from 'react';
-import { PlanNode, PARENT_ID_ROOT } from '@/features/editor/types/node';
+import { PARENT_ID_ROOT, PlanNodeData } from '@/features/editor/types/node';
+import { FlatPlanNodeV2 } from '@/features/editor/utils/structureUtils';
 
 interface MoveNodeFormProps {
-  nodes: PlanNode[];
+  nodes: FlatPlanNodeV2[];
   onMove: (targetId: string, parentId: string | null, position: string, referenceId?: string) => void;
   onCancel: () => void;
 }
 
-const isDescendant = (sourceId: string, targetParentId: string | null, allNodes: PlanNode[]): boolean => {
+const isDescendant = (sourceId: string, targetParentId: string | null, allNodes: FlatPlanNodeV2[]): boolean => {
   if (!targetParentId || targetParentId === PARENT_ID_ROOT) return false;
   let currentId: string | null = targetParentId;
   while (currentId && currentId !== PARENT_ID_ROOT) {
@@ -27,7 +28,7 @@ export const MoveNodeForm = ({ nodes, onMove, onCancel }: MoveNodeFormProps) => 
 
   const validParents = useMemo(() => {
     if (!targetId) return [];
-    return nodes.filter((n: PlanNode) => {
+    return nodes.filter(n => {
       if (n.id === targetId) return false;
       if (isDescendant(targetId, n.id, nodes)) return false;
       if (n.type !== 'PROCESS') return false;
@@ -36,10 +37,9 @@ export const MoveNodeForm = ({ nodes, onMove, onCancel }: MoveNodeFormProps) => 
   }, [nodes, targetId]);
 
   const siblings = useMemo(() => {
-    const pId = parentId === PARENT_ID_ROOT ? null : parentId;
+    const pId = parentId === PARENT_ID_ROOT ? PARENT_ID_ROOT : parentId;
     return nodes
-      .filter((n: PlanNode) => (n.parentId ?? null) === pId && n.id !== targetId)
-      .sort((a: PlanNode, b: PlanNode) => a.displayOrder - b.displayOrder);
+      .filter(n => (n.parentId ?? PARENT_ID_ROOT) === pId && n.id !== targetId);
   }, [nodes, parentId, targetId]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -67,9 +67,9 @@ export const MoveNodeForm = ({ nodes, onMove, onCancel }: MoveNodeFormProps) => 
           style={{ width: '100%', padding: '5px' }}
         >
           <option value="">-- 選択してください --</option>
-          {nodes.map((n: PlanNode) => (
+          {nodes.map(n => (
             <option key={n.id} value={n.id}>
-              {n.name} (Current Order: {n.displayOrder})
+              {n.name}
             </option>
           ))}
         </select>
@@ -86,7 +86,7 @@ export const MoveNodeForm = ({ nodes, onMove, onCancel }: MoveNodeFormProps) => 
               style={{ width: '100%', padding: '5px' }}
             >
               <option value={PARENT_ID_ROOT}>ROOT (最上位)</option>
-              {validParents.map((n: PlanNode) => (
+              {validParents.map(n => (
                 <option key={n.id} value={n.id}>{n.name}</option>
               ))}
             </select>
@@ -120,8 +120,10 @@ export const MoveNodeForm = ({ nodes, onMove, onCancel }: MoveNodeFormProps) => 
                   required
                 >
                   <option value="">-- 基準ノード --</option>
-                  {siblings.map((s: PlanNode) => (
-                    <option key={s.id} value={s.id}>{s.name} ({s.displayOrder})</option>
+                  {siblings.map(s => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
                   ))}
                 </select>
               )}

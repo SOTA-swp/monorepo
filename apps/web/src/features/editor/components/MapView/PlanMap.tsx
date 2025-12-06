@@ -1,9 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Map, Marker, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
-import { PlanNode } from '@/features/editor/types/node';
 import { PlanLocation } from '@/features/editor/types/node';
-import { getSortedFlatNodes } from '@/features/editor/utils/treeUtils';
-import { FlatPlanNodeV2 } from '@/features/editor/utils/v2/structureUtils';
+import { FlatPlanNodeV2 } from '@/features/editor/utils/structureUtils';
 
 interface PlanMapProps {
   //nodes: PlanNode[];
@@ -55,7 +53,7 @@ const Polyline = ({ path }: { path: google.maps.LatLngLiteral[] }) => {
 
 // --- メインコンポーネント: PlanMap ---
 export const PlanMap = ({ nodes, locationMap }: PlanMapProps) => {
-  
+
   // 1. ノードを訪問順に並べ替え、ロケーション情報を持つものだけを抽出する
   // ここで「論理的な経路データ」を作成します
   const routeCoordinates = useMemo(() => {
@@ -95,7 +93,7 @@ export const PlanMap = ({ nodes, locationMap }: PlanMapProps) => {
             key={point.id}
             position={{ lat: point.lat, lng: point.lng }}
             label={{
-              text:String(index + 1), // 訪問順の番号を表示
+              text: String(index + 1), // 訪問順の番号を表示
               color: 'white',
               fontWeight: 'bold'
             }}

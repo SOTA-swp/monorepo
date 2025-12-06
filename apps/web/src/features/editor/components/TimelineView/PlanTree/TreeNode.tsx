@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { PlanNode, NodeType } from '@/features/editor/types/node';
+import { NodeType } from '@/features/editor/types/node';
+import { FlatPlanNodeV2 } from '@/features/editor/utils/structureUtils';
 
 interface TreeNodeProps {
-  node: PlanNode;
-  onAdd: (parentId: string, type: NodeType, name: string) => void;
+  node: FlatPlanNodeV2;
+
+  onAdd: (parentId: string | null, type: NodeType, name: string) => void;
   onDelete: (id: string) => void;
-  onUpdate: (id: string, updates: Partial<PlanNode>) => void;
-  depth?: number;
+  onUpdate: (id: string, updates: any) => void; // updatesの型も柔軟にするか、PlanNodeDataに合わせる
+  depth: number;
 }
 
 export const TreeNode = ({ node, onAdd, onDelete, onUpdate, depth = 0 }: TreeNodeProps) => {
@@ -118,7 +120,7 @@ export const TreeNode = ({ node, onAdd, onDelete, onUpdate, depth = 0 }: TreeNod
             e.stopPropagation();
             onDelete(node.id)
           }
-        }
+          }
           style={{ fontSize: '0.8rem', color: 'red', cursor: 'pointer', border: 'none', background: 'none' }}
         >
           削除
