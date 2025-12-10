@@ -2,8 +2,6 @@ export type NodeType = 'PROCESS' | 'SPOT' | 'MOVE';
 
 export const PARENT_ID_ROOT = 'root';
 
-export type TimeType = 'NONE' | 'POINT' | 'RANGE';
-
 export interface PlanLocation {
   id: string;        // Google Place ID または UUID
   name: string;      // 場所の名前
@@ -26,7 +24,6 @@ export interface PlanNodeData {
 
   createdAt?: number;
   // 時間管理
-  timeType?: TimeType;
   startTime?: string;   // ISO 8601形式 (例: "2025-11-25T10:00:00Z")
   endTime?: string;     // ISO 8601形式
   duration?: number;    // 分単位

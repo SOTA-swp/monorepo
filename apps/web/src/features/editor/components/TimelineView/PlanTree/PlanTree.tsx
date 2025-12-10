@@ -5,6 +5,10 @@ import { TreeNode } from './TreeNode';
 import { MoveNodeForm } from './MoveNodeForm';
 import { v4 as uuidv4 } from 'uuid'; // ID生成用
 import { buildFlatTreeV2, FlatPlanNodeV2 } from '@/features/editor/utils/structureUtils';
+import {
+  buildCalculatedTree,
+  CalculatedPlanNode
+} from '@/features/editor/utils/structureUtils';
 
 interface PlanTreeProps {
   nodeMap: Record<string, PlanNodeData>;
@@ -25,8 +29,8 @@ export const PlanTree = ({
   onCreateNode, onUpdateNode, onDeleteNode,
   onRegisterTree, onUnregisterTree, onMoveTree
 }: PlanTreeProps) => {
-  const flatNodes = useMemo<FlatPlanNodeV2[]>(() => {
-    return buildFlatTreeV2(structure, nodeMap);
+  const flatNodes = useMemo<CalculatedPlanNode[]>(() => {
+    return buildCalculatedTree(structure, nodeMap, "09:00");
   }, [structure, nodeMap]);
 
   const [showMoveForm, setShowMoveForm] = useState(false);

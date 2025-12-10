@@ -14,6 +14,10 @@ import { usePlanData } from '@/features/editor/hooks/usePlanData';
 import { usePlanTree } from '@/features/editor/hooks/usePlanTree';
 import { v4 as uuidv4 } from 'uuid';
 import { buildFlatTreeV2, FlatPlanNodeV2 } from '@/features/editor/utils/structureUtils';
+import {
+  buildCalculatedTree,
+  CalculatedPlanNode
+} from '@/features/editor/utils/structureUtils';
 
 export const PlanEditor = () => {
   const router = useRouter();
@@ -75,9 +79,10 @@ export const PlanEditor = () => {
 
   //共通データ生成
   //データの中身と構造を結合しUI用のリスト作成
-  const flatNodes = useMemo<FlatPlanNodeV2[]>(() => {
-    return buildFlatTreeV2(structure, nodeMap);
-  }, [structure, nodeMap]);
+  const flatNodes = useMemo<CalculatedPlanNode[]>(() => {
+    if (!ydoc || Object.keys(nodeMap).length === 0) return [];
+    return buildCalculatedTree(structure, nodeMap, "09:00");
+  }, [structure, nodeMap, ydoc]);
 
   //ロケーションデータの実体を作成 (Yjs: planLocations)
   //!TODO   addLocation が placeId も受け取れるようにフックを修正する
