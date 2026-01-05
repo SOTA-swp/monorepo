@@ -5,4 +5,8 @@ export const ApiRoutes = {
     register: "/api/register",
     me: "/api/me",
   },
+  plan: {
+    create: "/api/plans",
+    edit: (planId: string) => `/api/plans/${planId}`,
+  },
 } as const;
