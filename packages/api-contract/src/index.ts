@@ -10,4 +10,7 @@ export const ApiRoutes = {
     create: "/api/plans",
     edit: (planId: string) => `/api/plans/${planId}`,
   },
+  invitation: {
+    respond: (invitationId: string) => `/api/invitations/${invitationId}/respond`
+  }
 } as const;

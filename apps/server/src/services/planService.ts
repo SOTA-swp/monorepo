@@ -2,7 +2,7 @@ import { prisma } from 'db';
 
 export const planService = {
   async createPlan(userId: string, title: string) {
-    return await prisma.$transaction(async (tx:any) => {
+    return await prisma.$transaction(async (tx: any) => {
       const newPlan = await tx.plan.create({
         data: {
           title: title,
@@ -24,58 +24,58 @@ export const planService = {
     });
   },
 
-  async inviteMember(currentUserId: string, planId: string, targetEmail: string) {
-    const membership = await prisma.planMember.findUnique({
-      where: {
-        userId_planId: {
-          userId: currentUserId,
-          planId: planId,
-        },
-      },
-    });
+  // async inviteMember(currentUserId: string, planId: string, targetEmail: string) {
+  //   const membership = await prisma.planMember.findUnique({
+  //     where: {
+  //       userId_planId: {
+  //         userId: currentUserId,
+  //         planId: planId,
+  //       },
+  //     },
+  //   });
 
-    if (!membership || membership.role !== 'OWNER') {
-      throw new Error('FORBIDDEN_NOT_OWNER');
-    }
+  //   if (!membership || membership.role !== 'OWNER') {
+  //     throw new Error('FORBIDDEN_NOT_OWNER');
+  //   }
 
-    const targetUser = await prisma.user.findUnique({
-      where: { email: targetEmail },
-    });
+  //   const targetUser = await prisma.user.findUnique({
+  //     where: { email: targetEmail },
+  //   });
 
-    if (!targetUser) {
-      throw new Error('USER_NOT_FOUND');
-    }
+  //   if (!targetUser) {
+  //     throw new Error('USER_NOT_FOUND');
+  //   }
 
-    const existingMember = await prisma.planMember.findUnique({
-      where: {
-        userId_planId: {
-          userId: targetUser.id,
-          planId: planId,
-        },
-      },
-    });
+  //   const existingMember = await prisma.planMember.findUnique({
+  //     where: {
+  //       userId_planId: {
+  //         userId: targetUser.id,
+  //         planId: planId,
+  //       },
+  //     },
+  //   });
 
-    if (existingMember) {
-      throw new Error('ALREADY_MEMBER');
-    }
+  //   if (existingMember) {
+  //     throw new Error('ALREADY_MEMBER');
+  //   }
 
-    const newMember = await prisma.planMember.create({
-      data: {
-        userId: targetUser.id,
-        planId: planId,
-        role: 'EDITOR',
-      },
-      include: {
-        user: { select: { id: true, email: true } }
-      }
-    });
+  //   const newMember = await prisma.planMember.create({
+  //     data: {
+  //       userId: targetUser.id,
+  //       planId: planId,
+  //       role: 'EDITOR',
+  //     },
+  //     include: {
+  //       user: { select: { id: true, email: true } }
+  //     }
+  //   });
 
-    return newMember;
-  },
+  //   return newMember;
+  // },
 
   async sendInvitation(currentUserId: string, planId: string, targetEmail: string) {
     return prisma.$transaction(async (tx) => {
-      
+
       const membership = await tx.planMember.findUnique({
         where: {
           userId_planId: {
@@ -144,4 +144,59 @@ export const planService = {
       return newInvitation;
     });
   },
+
+  async respondToInvitation(userId: string, invitationId: number, accept: boolean) {
+    return prisma.$transaction(async (tx) => {
+
+      //招待状の存在確認
+      const invitation = await tx.invitation.findUnique({
+        where: { id: invitationId },
+      });
+
+      if (!invitation) {
+        throw new Error('INVITATION_NOT_FOUND');
+      }
+
+      //本人確認（他人の招待に勝手に答えてはいけない）
+      if (invitation.inviteeId !== userId) {
+        throw new Error('FORBIDDEN_NOT_INVITEE');
+      }
+
+      //承諾の場合の処理
+      if (accept) {
+        // 念のため、既にメンバーになっていないか最終確認
+        const existingMember = await tx.planMember.findUnique({
+          where: {
+            userId_planId: {
+              userId: userId,
+              planId: invitation.planId,
+            },
+          },
+        });
+
+        if (!existingMember) {
+          // メンバーに追加 (権限は一旦 VIEWER か EDITOR か要件次第。ここではEDITOR)
+          await tx.planMember.create({
+            data: {
+              userId: userId,
+              planId: invitation.planId,
+              role: 'EDITOR',
+            },
+          });
+        }
+      }
+
+      // 招待状を削除
+      await tx.invitation.delete({
+        where: { id: invitationId },
+      });
+
+      return {
+        success: true,
+        action: accept ? 'ACCEPTED' : 'DECLINED',
+        planId: invitation.planId
+      };
+    });
+  },
+
 };
