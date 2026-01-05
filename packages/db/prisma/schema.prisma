@@ -10,6 +10,7 @@ datasource db {
 model User {
   id        String     @id @default(uuid())
   email     String  @unique
+  username String
   password  String  // 本番ではハッシュ化されたパスワードを保存
   createdAt DateTime @default(now())
 
@@ -33,6 +34,10 @@ model Plan {
   members PlanMember[]
   likes Like[]
   invitation Invitation[]
+
+  defaultStartTime String @default("09:00")
+  startDate        DateTime?
+  coverImage String?
 }
 
 model PlanMember {

@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 export const RegisterForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [message, setMessage] = useState('');
 
   const router = useRouter();
@@ -16,7 +17,7 @@ export const RegisterForm = () => {
       headers:{
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ username, email, password }),
     });
 
     const data = await response.json()

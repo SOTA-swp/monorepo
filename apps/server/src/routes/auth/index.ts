@@ -9,10 +9,11 @@ export async function authRoutes(server: FastifyInstance) {
   //会員登録----------------------------------------------------------------
   server.post('/api/register', async (request, reply) => {
     try {
-      const { email, password } = request.body as any;
-      if (!email || !password) return reply.status(400).send({ message: 'Email または password がありません'});
+      const { username, email, password } = request.body as any;
+      console.log(username, email, password);
+      if (!username || !email || !password) return reply.status(400).send({ message: 'ユーザーネーム または Email または password がありません'});
 
-      const newUser = await authService.register(email, password);
+      const newUser = await authService.register(username, email, password);
       return reply.status(201).send(newUser);
 
     } catch (error: any) {

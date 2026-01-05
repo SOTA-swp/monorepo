@@ -6,7 +6,7 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 if (!JWT_SECRET) throw new Error('JWT_SECRET is missing');
 
 export const authService = {
-  async register(email: string, password: string) {
+  async register(username: string, email: string, password: string) {
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       throw new Error('USER_ALREADY_EXISTS');
@@ -14,10 +14,11 @@ export const authService = {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await prisma.user.create({
-      data: { email, password: hashedPassword },
+      data: { username, email, password: hashedPassword },
     });
 
     return {
+      username: newUser.username,
       id: newUser.id,
       email: newUser.email,
       createdAt: newUser.createdAt
