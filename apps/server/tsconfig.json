@@ -3,8 +3,14 @@
   "compilerOptions": {
     "module": "NodeNext",
     "outDir": "./dist",
-    "moduleResolution": "NodeNext"
+    "moduleResolution": "NodeNext",
+    "rootDir": "../../"
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src/**/*",
+    "../../packages/api-contract/src/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
