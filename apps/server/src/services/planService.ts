@@ -71,5 +71,77 @@ export const planService = {
     });
 
     return newMember;
-  }
+  },
+
+  async sendInvitation(currentUserId: string, planId: string, targetEmail: string) {
+    return prisma.$transaction(async (tx) => {
+      
+      const membership = await tx.planMember.findUnique({
+        where: {
+          userId_planId: {
+            userId: currentUserId,
+            planId: planId,
+          },
+        },
+      });
+
+      if (!membership || membership.role !== 'OWNER') {
+        throw new Error('FORBIDDEN_NOT_OWNER');
+      }
+
+      const targetUser = await tx.user.findUnique({
+        where: { email: targetEmail },
+      });
+
+      if (!targetUser) {
+        throw new Error('USER_NOT_FOUND');
+      }
+
+      const existingMember = await tx.planMember.findUnique({
+        where: {
+          userId_planId: {
+            userId: targetUser.id,
+            planId: planId,
+          },
+        },
+      });
+
+      if (existingMember) {
+        throw new Error('ALREADY_MEMBER');
+      }
+
+      const existingInvite = await tx.invitation.findFirst({
+        where: {
+          planId: planId,
+          inviteeId: targetUser.id,
+          status: 'PENDING'
+        }
+      });
+
+      if (existingInvite) {
+        throw new Error('ALREADY_INVITED');
+      }
+
+      const newInvitation = await tx.invitation.create({
+        data: {
+          inviterId: currentUserId,
+          planId: planId,
+          inviteeEmail: targetEmail,
+          inviteeId: targetUser.id,
+          status: 'PENDING',
+        },
+      });
+
+      await tx.notification.create({
+        data: {
+          type: 'INVITATION',
+          userId: targetUser.id,          // 相手に通知
+          triggerUserId: currentUserId,   // あなたがトリガー
+          invitationId: newInvitation.id, // 招待状と紐付け
+        },
+      });
+
+      return newInvitation;
+    });
+  },
 };

@@ -5,6 +5,8 @@ import jwt from 'jsonwebtoken';
 import { authService } from '../../services/authService';
 import { planService } from '../../services/planService';
 
+import { ApiRoutes } from '../../../../../packages/api-contract/src';
+
 interface CreatePlanBody {
   title: string;
 }
@@ -51,7 +53,7 @@ export async function planRoutes(server: FastifyInstance) {
 
   // メンバー招待 API: POST /api/plans/:planId/members----------------------------------------------------------------
   server.post<{ Params: PlanParams; Body: InviteMemberBody }>(
-    '/api/plans/:planId/members',
+    ApiRoutes.plan.edit(":planId"),
     async (request, reply) => {
       try {
         const currentUserId = await getUserId(request);
@@ -63,7 +65,7 @@ export async function planRoutes(server: FastifyInstance) {
           return reply.status(400).send({ message: '招待するメールアドレスは必須です' });
         }
 
-        const newMember = await planService.inviteMember(currentUserId, planId, targetEmail);
+        const newMember = await planService.sendInvitation(currentUserId, planId, targetEmail);
 
         server.log.info(`招待成功: Plan ${planId} <- ${targetEmail}`);
         return reply.status(201).send(newMember);
