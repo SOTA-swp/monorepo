@@ -93,6 +93,28 @@ export async function authRoutes(server: FastifyInstance) {
     }
   });
 
+  server.get(ApiRoutes.auth.user(":userId"), async (request, reply) => {
+    try {
+      const { userId } = request.params as { userId: string };
+
+      if (!userId) {
+        return reply.status(400).send({ message: 'User ID is required' });
+      }
+
+      const user = await authService.getUserPublicProfile(userId);
+
+      if (!user) {
+        return reply.status(404).send({ message: 'User not found' });
+      }
+
+      return reply.status(200).send(user);
+
+    } catch (error) {
+      server.log.error(error);
+      return reply.status(500).send({ message: 'Internal Server Error' });
+    }
+  });
+
   //ログアウト----------------------------------------------------------------
   server.post(ApiRoutes.auth.logout, async (request, reply) => {
     reply.clearCookie('token', { path: '/' });

@@ -35,6 +35,21 @@ export const authService = {
     });
   },
 
+  async getUserPublicProfile(userId: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      // ★重要: パスワードやEmailを含めないよう、必要な項目だけをtrueにする
+      select: {
+        id: true,
+        username: true,
+        // 将来的に avatarUrl や bio (自己紹介) が増えたらここに追加
+        // createdAt: true, // 登録日を表示したい場合はtrue
+      },
+    });
+
+    return user;
+  },
+
   async login(email: string, password: string) {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
