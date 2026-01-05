@@ -25,6 +25,16 @@ export const authService = {
     };
   },
 
+  async updateUser(userId: string, data: { username?: string; email?: string }) {
+    return prisma.user.update({
+      where: { id: userId },
+      data: {
+        username: data.username,
+        email: data.email,
+      },
+    });
+  },
+
   async login(email: string, password: string) {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {

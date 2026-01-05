@@ -69,6 +69,29 @@ export async function authRoutes(server: FastifyInstance) {
     }
   });
 
+  server.put('/api/me', async (request, reply) => {
+    try {
+      const token = request.cookies.token;
+      if (!token) return reply.status(401).send({ message: '認証されていません' });
+      const currentUser = await authService.verifyToken(token);
+      if (!currentUser) return reply.status(401).send({ message: '認証エラー' });
+
+      const { username, email } = request.body as any;
+
+      if (!username && !email) {
+        return reply.status(400).send({ message: '変更するデータがありません' });
+      }
+
+      const updatedUser = await authService.updateUser(currentUser.id, { username, email });
+      
+      return reply.status(200).send(updatedUser);
+
+    } catch (error: any) {
+      server.log.error(error);
+      return reply.status(500).send({ message: 'サーバー内部でエラー発生' });
+    }
+  });
+
   //ログアウト----------------------------------------------------------------
   server.post('/api/logout', async (request, reply) => {
     reply.clearCookie('token', { path: '/' });
