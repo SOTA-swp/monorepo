@@ -190,6 +190,121 @@ export const planService = {
     return updatedPlan;
   },
 
+  //いいね
+  async addLike(userId: string, planId: string) {
+
+    const plan = await prisma.plan.findUnique({
+      where: { id: planId },
+      select: { id: true, creatorId: true }
+    });
+
+    if (!plan) throw new Error('PLAN_NOT_FOUND');
+
+    // 複合キー (userId, planId) を使って検索
+    const existingLike = await prisma.like.findUnique({
+      where: {
+        userId_planId: {
+          userId: userId,
+          planId: planId
+        }
+      }
+    });
+
+    if (existingLike) {
+      return existingLike;
+    }
+
+    // トランザクションで「いいね」と「通知」を同時に作成
+    const result = await prisma.$transaction(async (tx) => {
+      // Likeデータ作成
+      const newLike = await tx.like.create({
+        data: {
+          userId,
+          planId
+        }
+      });
+
+      // 通知 (Notification) 作成
+      if (plan.creatorId !== userId) {
+        await tx.notification.create({
+          data: {
+            type: 'LIKE',
+            userId: plan.creatorId,
+            triggerUserId: userId,
+            planId: planId,
+            isRead: false,
+          }
+        });
+      }
+
+      return newLike;
+    });
+
+    return result;
+
+  },
+
+  //いいねの取り消し
+  async removeLike(userId: string, planId: string) {
+    try {
+      // 複合キーを使って削除
+      await prisma.like.delete({
+        where: {
+          userId_planId: {
+            userId: userId,
+            planId: planId
+          }
+        }
+      });
+      return { success: true };
+    } catch (error) {
+      // 存在しない「いいね」を消そうとした場合のエラー (P2025) は無視して成功扱いにする
+      return { success: true };
+    }
+  },
+
+  //計画のいいね数を取得
+  async getLikeCount(planId: string) {
+    const plan = await prisma.plan.findUnique({
+      where: { id: planId },
+      select: { id: true }
+    });
+
+    if (!plan) {
+      throw new Error('PLAN_NOT_FOUND');
+    }
+    const count = await prisma.like.count({
+      where: { planId }
+    });
+    return count;
+  },
+
+  //ユーザーがその計画にいいねしているかを取得
+  async hasUserLiked(userId: string, planId: string) {
+    const plan = await prisma.plan.findUnique({
+      where: { id: planId },
+      select: { id: true } 
+    });
+
+    if (!plan) {
+      throw new Error('PLAN_NOT_FOUND');
+    }
+
+    const userExists = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!userExists) {
+      throw new Error('USER_NOT_FOUND');
+    }
+    const like = await prisma.like.findUnique({
+      where: {
+        userId_planId: { userId, planId }
+      }
+    });
+    return !!like; // true or false
+  }
+
 
 
 };

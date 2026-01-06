@@ -144,4 +144,76 @@ export async function planRoutes(server: FastifyInstance) {
     }
   );
 
+  //いいね
+  server.post<{ Params: { planId: string } }>(
+    '/api/plans/:planId/likes',
+    { preHandler: requireAuth },
+    async (request, reply) => {
+      try {
+        const userId = request.user.id;
+        const { planId } = request.params;
+        await planService.addLike(userId, planId);
+        return reply.status(201).send({ message: 'いいねしました' });
+      } catch (error: any) {
+        if (error.message === 'PLAN_NOT_FOUND') return reply.status(404).send({ message: 'プランが見つかりません' });
+        server.log.error(error);
+        return reply.status(500).send({ message: '処理に失敗しました' });
+      }
+    }
+  );
+
+  // いいね解除
+  server.delete<{ Params: { planId: string } }>(
+    '/api/plans/:planId/likes',
+    { preHandler: requireAuth },
+    async (request, reply) => {
+      try {
+        const userId = request.user.id;
+        const { planId } = request.params;
+        await planService.removeLike(userId, planId);
+        return reply.status(200).send({ message: 'いいねを解除しました' });
+      } catch (error: any) {
+        if (error.message === 'PLAN_NOT_FOUND') return reply.status(404).send({ message: 'プランが見つかりません' });
+        server.log.error(error);
+        return reply.status(500).send({ message: '処理に失敗しました' });
+      }
+    }
+  );
+
+  //計画のいいね数と自分がいいねしてるかを取得
+  server.get<{ Params: { planId: string } }>(
+    '/api/plans/:planId/like-status', // パスはこれが分かりやすいです
+    { preHandler: requireAuth },      // 自分がいいねしてるか判定するため認証必須
+    async (request, reply) => {
+      try {
+        const { planId } = request.params;
+        const userId = request.user.id;
+
+        // 1. プランの存在確認 (countのエラーハンドリングをここで行う)
+        // サービス層の getLikeCount にプラン存在確認ロジックを入れた場合は
+        // ここで try-catch するだけでOKですが、念の為ここでも書くなら：
+        // await planService.ensurePlanExists(planId); 
+
+        // 2. 並列実行して高速化 (Promise.all)
+        // 数と状態を同時にDBに問い合わせます
+        const [count, hasLiked] = await Promise.all([
+          planService.getLikeCount(planId),
+          planService.hasUserLiked(userId, planId)
+        ]);
+
+        return reply.status(200).send({
+          count: count,
+          hasLiked: hasLiked
+        });
+
+      } catch (error: any) {
+        if (error.message === 'PLAN_NOT_FOUND') {
+          return reply.status(404).send({ message: 'プランが見つかりません' });
+        }
+        server.log.error(error);
+        return reply.status(500).send({ message: '取得に失敗しました' });
+      }
+    }
+  );
+
 }
