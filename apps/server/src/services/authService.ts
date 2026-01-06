@@ -42,8 +42,8 @@ export const authService = {
       select: {
         id: true,
         username: true,
+        createdAt: true,
         // 将来的に avatarUrl や bio (自己紹介) が増えたらここに追加
-        // createdAt: true, // 登録日を表示したい場合はtrue
       },
     });
 
