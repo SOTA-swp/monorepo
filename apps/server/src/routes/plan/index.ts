@@ -7,6 +7,8 @@ import { planService } from '../../services/planService';
 
 import { ApiRoutes } from '../../../../../packages/api-contract/src';
 
+import { requireAuth } from '../../lib/auth';
+
 interface CreatePlanBody {
   title: string;
 }
@@ -30,9 +32,13 @@ export async function planRoutes(server: FastifyInstance) {
   };
 
   //Plan作成 /api/plans
-  server.post<{ Body: CreatePlanBody }>(ApiRoutes.plan.create, async (request, reply) => {
+  server.post<{ Body: CreatePlanBody }>(ApiRoutes.plan.create,
+    {
+      preHandler: requireAuth,
+    },
+    async (request, reply) => {
     try {
-      const userId = await getUserId(request);
+      const userId = request.user.id
 
       const { title } = request.body;
       if (!title) return reply.status(400).send({ message: 'タイトルは必須です' });
@@ -54,10 +60,13 @@ export async function planRoutes(server: FastifyInstance) {
   // メンバー招待 /api/plans/:planId/invitations
   server.post<{ Params: PlanParams; Body: InviteMemberBody }>(
     '/api/plans/:planId/invitations',
+    {
+      preHandler: requireAuth,
+    },
     async (request, reply) => {
       try {
-        const currentUserId = await getUserId(request);
-
+        const currentUserId = request.user.id;
+        
         const { planId } = request.params;
         const { email: targetEmail } = request.body;
 

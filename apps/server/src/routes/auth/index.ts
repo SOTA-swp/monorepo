@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { authService } from "../../services/authService";
 import { ApiRoutes } from "../../../../../packages/api-contract/src";
+import { requireAuth } from "../../lib/auth";
 
 export async function authRoutes(server: FastifyInstance) {
 
@@ -59,16 +60,13 @@ export async function authRoutes(server: FastifyInstance) {
   });
 
   //ユーザー情報取得----------------------------------------------------------------
-  server.get(ApiRoutes.auth.me, async (request, reply) => {
+  server.get(ApiRoutes.auth.me,
+    {
+      preHandler: requireAuth,
+    },
+    async (request, reply) => {
     try {
-      const token = request.cookies.token;
-      if (!token) return reply.status(401).send({ message: '認証されていません' });
-
-      const user = await authService.verifyToken(token);
-      if (!user) return reply.status(401).send({ message: '認証エラー' });
-
-      return reply.status(200).send(user);
-
+      return reply.status(200).send(request.user);
     } catch (error) {
       server.log.warn(error);
       return reply.status(401).send({ message: '認証エラー' });
@@ -76,12 +74,13 @@ export async function authRoutes(server: FastifyInstance) {
   });
 
   //ユーザー情報編集
-  server.put(ApiRoutes.auth.me, async (request, reply) => {
+  server.put(ApiRoutes.auth.me,
+    {
+      preHandler: requireAuth,
+    },
+    async (request, reply) => {
     try {
-      const token = request.cookies.token;
-      if (!token) return reply.status(401).send({ message: '認証されていません' });
-      const currentUser = await authService.verifyToken(token);
-      if (!currentUser) return reply.status(401).send({ message: '認証エラー' });
+      const currentUser = request.user;
 
       const { username, email } = request.body as any;
 
@@ -123,12 +122,13 @@ export async function authRoutes(server: FastifyInstance) {
   });
 
   //通知取得
-  server.get(ApiRoutes.notification.default, async (request, reply) => {
+  server.get(ApiRoutes.notification.default,
+    {
+      preHandler: requireAuth,
+    },
+    async (request, reply) => {
     try {
-      const token = request.cookies.token;
-      if (!token) return reply.status(401).send({ message: '認証されていません' });
-      const user = await authService.verifyToken(token);
-      if (!user) return reply.status(401).send({ message: '認証エラー' });
+      const user = request.user;
       const notifications = await authService.getMyNotifications(user.id);
 
       return reply.status(200).send(notifications);
@@ -143,13 +143,13 @@ export async function authRoutes(server: FastifyInstance) {
   });
 
   //通知を既読に変更
-  server.patch<{ Body: { ids: string[], isRead: boolean } }>(ApiRoutes.notification.default, async (request, reply) => {
+  server.patch<{ Body: { ids: string[], isRead: boolean } }>(ApiRoutes.notification.default,
+    {
+      preHandler: requireAuth,
+    },
+    async (request, reply) => {
     try {
-      const token = request.cookies.token;
-      if (!token) return reply.status(401).send({ message: '認証されていません' });
-      const user = await authService.verifyToken(token);
-      if (!user) return reply.status(401).send({ message: '認証エラー' });
-
+      const user = request.user;
       const { ids } = request.body;
       if (!ids || !Array.isArray(ids)) {
         return reply.status(400).send({ message: '通知IDのリストが必要です' });
@@ -167,13 +167,12 @@ export async function authRoutes(server: FastifyInstance) {
   //招待への応答 /api/invitation/:invitationId
   server.patch<{ Params: { invitationId: string }; Body: { accept: boolean } }>(
     ApiRoutes.invitation.respond(":invitationId"),
+    {
+      preHandler: requireAuth,
+    },
     async (request, reply) => {
       try {
-        const token = request.cookies.token;
-        if (!token) return reply.status(401).send({ message: '認証されていません' });
-        const user = await authService.verifyToken(token);
-        if (!user) return reply.status(401).send({ message: '認証エラー' });
-        const currentUserId = user.id
+        const currentUserId = request.user.id
 
         // URLパラメータは文字列で来るので数値に変換
         const invitationId = Number(request.params.invitationId);
@@ -203,6 +202,4 @@ export async function authRoutes(server: FastifyInstance) {
       }
     }
   );
-
-
 }
