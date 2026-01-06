@@ -93,6 +93,46 @@ export async function authRoutes(server: FastifyInstance) {
     }
   });
 
+  server.get('/api/me/notifications', async (request, reply) => {
+    try {
+      const token = request.cookies.token;
+      if (!token) return reply.status(401).send({ message: '認証されていません' });
+      const user = await authService.verifyToken(token);
+      if (!user) return reply.status(401).send({ message: '認証エラー' });
+      const notifications = await authService.getMyNotifications(user.id);
+      
+      return reply.status(200).send(notifications);
+    } catch (error: any) {
+      // エラーハンドリング（省略）
+      if (error.message === 'NO_TOKEN' || error.message === 'INVALID_TOKEN') {
+        return reply.status(401).send({ message: 'ログインしてください' });
+      }
+      server.log.error(error);
+      return reply.status(500).send({ message: '通知の取得に失敗しました' });
+    }
+  });
+
+  server.put<{ Body: { ids: string[] } }>('/api/me/notifications/read', async (request, reply) => {
+    try {
+      const token = request.cookies.token;
+      if (!token) return reply.status(401).send({ message: '認証されていません' });
+      const user = await authService.verifyToken(token);
+      if (!user) return reply.status(401).send({ message: '認証エラー' });
+
+      const { ids } = request.body;
+      if (!ids || !Array.isArray(ids)) {
+        return reply.status(400).send({ message: '通知IDのリストが必要です' });
+      }
+
+      await authService.markAsRead(ids);
+      return reply.status(200).send({ success: true });
+
+    } catch (error: any) {
+      server.log.error(error);
+      return reply.status(500).send({ message: '更新に失敗しました' });
+    }
+  });
+
   server.get(ApiRoutes.auth.user(":userId"), async (request, reply) => {
     try {
       const { userId } = request.params as { userId: string };
@@ -114,6 +154,7 @@ export async function authRoutes(server: FastifyInstance) {
       return reply.status(500).send({ message: 'Internal Server Error' });
     }
   });
+
 
   //ログアウト----------------------------------------------------------------
   server.post(ApiRoutes.auth.logout, async (request, reply) => {

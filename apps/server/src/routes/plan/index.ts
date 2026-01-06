@@ -53,7 +53,7 @@ export async function planRoutes(server: FastifyInstance) {
 
   // メンバー招待 API: POST /api/plans/:planId/members----------------------------------------------------------------
   server.post<{ Params: PlanParams; Body: InviteMemberBody }>(
-    ApiRoutes.plan.edit(":planId"),
+    '/api/plans/:planId/members',
     async (request, reply) => {
       try {
         const currentUserId = await getUserId(request);

@@ -73,6 +73,51 @@ export const authService = {
     };
   },
 
+  async getMyNotifications(userId: string) {
+    // 1. お掃除: 「3日以上前の」かつ「既読の」いいね通知は削除
+    // (招待通知は重要なのですぐには消しません)
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
+    await prisma.notification.deleteMany({
+      where: {
+        userId: userId,
+        type: 'LIKE', // 文字列指定
+        isRead: true,
+        createdAt: { lt: threeDaysAgo },
+      },
+    });
+
+    // 2. データ取得
+    const notifications = await prisma.notification.findMany({
+      where: { userId: userId },
+      orderBy: { createdAt: 'desc' }, // 新しい順
+      include: {
+        // 通知の「元」になった人の情報（名前やアイコン用）
+        triggerUser: {
+          select: { id: true, username: true, email: true }
+        },
+        // 関連するプランの情報（タイトル用）
+        plan: {
+          select: { id: true, title: true }
+        },
+        // 関連する招待の情報（IDやステータス用）
+        invitation: {
+          select: { id: true, status: true }
+        }
+      }
+    });
+
+    return notifications;
+  },
+
+  async markAsRead(notificationIds: string[]) {
+    await prisma.notification.updateMany({
+      where: { id: { in: notificationIds } },
+      data: { isRead: true },
+    });
+  },
+
   async verifyToken(token: string) {
     try {
       const payload = jwt.verify(token, JWT_SECRET) as { userId: string };

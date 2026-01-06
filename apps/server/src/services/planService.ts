@@ -138,6 +138,7 @@ export const planService = {
           userId: targetUser.id,          // 相手に通知
           triggerUserId: currentUserId,   // あなたがトリガー
           invitationId: newInvitation.id, // 招待状と紐付け
+          planId: planId,
         },
       });
 
