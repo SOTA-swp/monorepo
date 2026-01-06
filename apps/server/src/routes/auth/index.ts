@@ -65,13 +65,13 @@ export async function authRoutes(server: FastifyInstance) {
       preHandler: requireAuth,
     },
     async (request, reply) => {
-    try {
-      return reply.status(200).send(request.user);
-    } catch (error) {
-      server.log.warn(error);
-      return reply.status(401).send({ message: '認証エラー' });
-    }
-  });
+      try {
+        return reply.status(200).send(request.user);
+      } catch (error) {
+        server.log.warn(error);
+        return reply.status(401).send({ message: '認証エラー' });
+      }
+    });
 
   //ユーザー情報編集
   server.put(ApiRoutes.auth.me,
@@ -79,24 +79,24 @@ export async function authRoutes(server: FastifyInstance) {
       preHandler: requireAuth,
     },
     async (request, reply) => {
-    try {
-      const currentUser = request.user;
+      try {
+        const currentUser = request.user;
 
-      const { username, email } = request.body as any;
+        const { username, email } = request.body as any;
 
-      if (!username && !email) {
-        return reply.status(400).send({ message: '変更するデータがありません' });
+        if (!username && !email) {
+          return reply.status(400).send({ message: '変更するデータがありません' });
+        }
+
+        const updatedUser = await authService.updateUser(currentUser.id, { username, email });
+
+        return reply.status(200).send(updatedUser);
+
+      } catch (error: any) {
+        server.log.error(error);
+        return reply.status(500).send({ message: 'サーバー内部でエラー発生' });
       }
-
-      const updatedUser = await authService.updateUser(currentUser.id, { username, email });
-
-      return reply.status(200).send(updatedUser);
-
-    } catch (error: any) {
-      server.log.error(error);
-      return reply.status(500).send({ message: 'サーバー内部でエラー発生' });
-    }
-  });
+    });
 
   //ユーザーIDからユーザー情報を取得
   server.get(ApiRoutes.auth.user(":userId"), async (request, reply) => {
@@ -127,20 +127,20 @@ export async function authRoutes(server: FastifyInstance) {
       preHandler: requireAuth,
     },
     async (request, reply) => {
-    try {
-      const user = request.user;
-      const notifications = await authService.getMyNotifications(user.id);
+      try {
+        const user = request.user;
+        const notifications = await authService.getMyNotifications(user.id);
 
-      return reply.status(200).send(notifications);
-    } catch (error: any) {
-      // エラーハンドリング（省略）
-      if (error.message === 'NO_TOKEN' || error.message === 'INVALID_TOKEN') {
-        return reply.status(401).send({ message: 'ログインしてください' });
+        return reply.status(200).send(notifications);
+      } catch (error: any) {
+        // エラーハンドリング（省略）
+        if (error.message === 'NO_TOKEN' || error.message === 'INVALID_TOKEN') {
+          return reply.status(401).send({ message: 'ログインしてください' });
+        }
+        server.log.error(error);
+        return reply.status(500).send({ message: '通知の取得に失敗しました' });
       }
-      server.log.error(error);
-      return reply.status(500).send({ message: '通知の取得に失敗しました' });
-    }
-  });
+    });
 
   //通知を既読に変更
   server.patch<{ Body: { ids: string[], isRead: boolean } }>(ApiRoutes.notification.default,
@@ -148,21 +148,21 @@ export async function authRoutes(server: FastifyInstance) {
       preHandler: requireAuth,
     },
     async (request, reply) => {
-    try {
-      const user = request.user;
-      const { ids } = request.body;
-      if (!ids || !Array.isArray(ids)) {
-        return reply.status(400).send({ message: '通知IDのリストが必要です' });
+      try {
+        const user = request.user;
+        const { ids } = request.body;
+        if (!ids || !Array.isArray(ids)) {
+          return reply.status(400).send({ message: '通知IDのリストが必要です' });
+        }
+
+        await authService.markAsRead(ids);
+        return reply.status(200).send({ success: true });
+
+      } catch (error: any) {
+        server.log.error(error);
+        return reply.status(500).send({ message: '更新に失敗しました' });
       }
-
-      await authService.markAsRead(ids);
-      return reply.status(200).send({ success: true });
-
-    } catch (error: any) {
-      server.log.error(error);
-      return reply.status(500).send({ message: '更新に失敗しました' });
-    }
-  });
+    });
 
   //招待への応答 /api/invitation/:invitationId
   server.patch<{ Params: { invitationId: string }; Body: { accept: boolean } }>(
@@ -199,6 +199,48 @@ export async function authRoutes(server: FastifyInstance) {
             server.log.error(error);
             return reply.status(500).send({ message: '処理に失敗しました' });
         }
+      }
+    }
+  );
+
+  //ユーザーの作成した計画を取得
+  server.get<{ Params: { userId: string } }>(
+    '/api/users/:userId/plans',
+    // 公開情報なら requireAuth は不要かもしれない
+    // アプリの仕様として「ログインユーザーのみ閲覧可」なら付ける。今回は付ける。
+    {
+      preHandler: requireAuth
+    },
+    async (request, reply) => {
+      try {
+        const { userId } = request.params;
+        const plans = await authService.getPlansByOwner(userId);
+        return reply.status(200).send(plans);
+      } catch (error: any) {
+        if (error.message === 'USER_NOT_FOUND') {
+          return reply.status(404).send({ message: '指定されたユーザーが見つかりません' });
+        }
+        server.log.error(error);
+        return reply.status(500).send({ message: '計画の取得に失敗しました' });
+      }
+    }
+  );
+
+  //自分が参加中の計画を取得
+  server.get(
+    ApiRoutes.auth.plans,
+    {
+      preHandler: requireAuth
+    },
+    async (request, reply) => {
+      try {
+      const myUserId = request.user.id;
+
+      const plans = await authService.getMyParticipatingPlans(myUserId);
+      return reply.status(200).send(plans);
+      } catch (error: any) {
+        server.log.error(error);
+        return reply.status(500).send({ message: '計画一覧の取得に失敗しました' });
       }
     }
   );

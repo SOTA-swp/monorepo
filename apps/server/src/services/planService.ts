@@ -146,6 +146,50 @@ export const planService = {
     });
   },
 
-  
+  //計画の削除
+  async deletePlan(userId: string, planId: string) {
+
+    const plan = await prisma.plan.findUnique({
+      where: { id: planId },
+    });
+
+    if (!plan) throw new Error('PLAN_NOT_FOUND');
+
+    // 2. 権限チェック (重要)
+    if (plan.creatorId !== userId) {
+      throw new Error('FORBIDDEN_NOT_OWNER');
+    }
+
+    // 3. 削除
+    // (Prismaで onCascade 設定があればメンバーや招待も自動で消えます)
+    await prisma.plan.delete({
+      where: { id: planId },
+    });
+
+    return { success: true };
+  },
+
+
+  async updatePlan(userId: string, planId: string, data: {
+    title?: string;
+    description?: string;
+  }) {
+    const plan = await prisma.plan.findUnique({ where: { id: planId } });
+
+    if (!plan) throw new Error('PLAN_NOT_FOUND');
+    if (plan.creatorId !== userId) throw new Error('FORBIDDEN_NOT_OWNER');
+
+    //更新
+    const updatedPlan = await prisma.plan.update({
+      where: { id: planId },
+      data: {
+        ...data,
+      },
+    });
+
+    return updatedPlan;
+  },
+
+
 
 };

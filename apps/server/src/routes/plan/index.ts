@@ -37,25 +37,25 @@ export async function planRoutes(server: FastifyInstance) {
       preHandler: requireAuth,
     },
     async (request, reply) => {
-    try {
-      const userId = request.user.id
+      try {
+        const userId = request.user.id
 
-      const { title } = request.body;
-      if (!title) return reply.status(400).send({ message: 'タイトルは必須です' });
+        const { title } = request.body;
+        if (!title) return reply.status(400).send({ message: 'タイトルは必須です' });
 
-      const newPlan = await planService.createPlan(userId, title);
+        const newPlan = await planService.createPlan(userId, title);
 
-      server.log.info(`計画作成成功: ID ${newPlan.id} by User ${userId}`);
-      return reply.status(201).send(newPlan);
+        server.log.info(`計画作成成功: ID ${newPlan.id} by User ${userId}`);
+        return reply.status(201).send(newPlan);
 
-    } catch (error: any) {
-      if (error.message === 'NO_TOKEN' || error.message === 'INVALID_TOKEN') {
-        return reply.status(401).send({ message: 'ログインしてください' });
+      } catch (error: any) {
+        if (error.message === 'NO_TOKEN' || error.message === 'INVALID_TOKEN') {
+          return reply.status(401).send({ message: 'ログインしてください' });
+        }
+        server.log.error(error);
+        return reply.status(500).send({ message: '計画の作成に失敗しました' });
       }
-      server.log.error(error);
-      return reply.status(500).send({ message: '計画の作成に失敗しました' });
-    }
-  });
+    });
 
   // メンバー招待 /api/plans/:planId/invitations
   server.post<{ Params: PlanParams; Body: InviteMemberBody }>(
@@ -66,7 +66,7 @@ export async function planRoutes(server: FastifyInstance) {
     async (request, reply) => {
       try {
         const currentUserId = request.user.id;
-        
+
         const { planId } = request.params;
         const { email: targetEmail } = request.body;
 
@@ -95,6 +95,51 @@ export async function planRoutes(server: FastifyInstance) {
             server.log.error(error);
             return reply.status(500).send({ message: '招待処理に失敗しました' });
         }
+      }
+    }
+  );
+
+  //計画削除 /api/plans/:planId DELETE
+  server.delete<{ Params: { planId: string } }>(
+    ApiRoutes.plan.edit(":planId"),
+    {
+      preHandler: requireAuth
+    },
+    async (request, reply) => {
+      try {
+        const { planId } = request.params;
+        const userId = request.user.id;
+
+        await planService.deletePlan(userId, planId);
+        return reply.status(200).send({ message: '削除しました' });
+
+      } catch (error: any) {
+        if (error.message === 'PLAN_NOT_FOUND') return reply.status(404).send({ message: '計画が見つかりません' });
+        if (error.message === 'FORBIDDEN_NOT_OWNER') return reply.status(403).send({ message: '削除権限がありません' });
+        return reply.status(500).send({ message: '削除に失敗しました' });
+      }
+    }
+  );
+
+  //計画の基本情報の編集 /api/plans/:planId PATCH
+  server.patch<{ Params: { planId: string }; Body: { title?: string; description?: string } }>(
+    ApiRoutes.plan.edit(":planId"),
+    {
+      preHandler: requireAuth
+    },
+    async (request, reply) => {
+      try {
+        const { planId } = request.params;
+        const userId = request.user.id;
+        const updateData = request.body;
+
+        const result = await planService.updatePlan(userId, planId, updateData);
+        return reply.status(200).send(result);
+
+      } catch (error: any) {
+        if (error.message === 'PLAN_NOT_FOUND') return reply.status(404).send({ message: '計画が見つかりません' });
+        if (error.message === 'FORBIDDEN_NOT_OWNER') return reply.status(403).send({ message: '編集権限がありません' });
+        return reply.status(500).send({ message: '更新に失敗しました' });
       }
     }
   );

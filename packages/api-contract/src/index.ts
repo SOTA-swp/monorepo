@@ -4,6 +4,7 @@ export const ApiRoutes = {
     logout: "/api/logout",
     register: "/api/register",
     me: "/api/me",
+    plans: "/api/me/plans",
     user: (userId: string) => `/api/users/${userId}`,
   },
   plan: {

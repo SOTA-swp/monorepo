@@ -172,6 +172,57 @@ export const authService = {
     });
   },
 
+  //ユーザーIdから計画一覧を取得
+  async getPlansByOwner(targetUserId: string) {
+
+    const userExists = await prisma.user.findUnique({
+      where: { id: targetUserId },
+    });
+
+    if (!userExists) {
+      throw new Error('USER_NOT_FOUND');
+    }
+
+    const plans = await prisma.plan.findMany({
+      where: {
+        creatorId: targetUserId,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        _count: { select: { members: true } }
+      }
+    });
+    return plans;
+  },
+
+  //自分が参加中の計画一覧を取得
+  async getMyParticipatingPlans(myUserId: string) {
+    try {
+      const plans = await prisma.plan.findMany({
+        where: {
+          OR: [
+            { creatorId: myUserId }, // 自分が作った
+            {
+              members: {
+                some: { userId: myUserId } // 自分がメンバーに含まれている
+              }
+            }
+          ]
+        },
+        orderBy: { createdAt: 'desc' }, // 最近更新された順が見やすい
+        include: {
+          creator: { select: { username: true } }, // 誰主催かわかるように
+          _count: { select: { members: true } }
+        }
+      });
+      return plans;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   async verifyToken(token: string) {
     try {
       const payload = jwt.verify(token, JWT_SECRET) as { userId: string };
