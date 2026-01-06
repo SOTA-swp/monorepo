@@ -29,8 +29,8 @@ export async function planRoutes(server: FastifyInstance) {
     return user.id;
   };
 
-  //Plan作成----------------------------------------------------------------
-  server.post<{ Body: CreatePlanBody }>('/api/plans', async (request, reply) => {
+  //Plan作成 /api/plans
+  server.post<{ Body: CreatePlanBody }>(ApiRoutes.plan.create, async (request, reply) => {
     try {
       const userId = await getUserId(request);
 
@@ -51,9 +51,9 @@ export async function planRoutes(server: FastifyInstance) {
     }
   });
 
-  // メンバー招待 API: POST /api/plans/:planId/members----------------------------------------------------------------
+  // メンバー招待 /api/plans/:planId/invitations
   server.post<{ Params: PlanParams; Body: InviteMemberBody }>(
-    '/api/plans/:planId/members',
+    '/api/plans/:planId/invitations',
     async (request, reply) => {
       try {
         const currentUserId = await getUserId(request);
@@ -90,38 +90,4 @@ export async function planRoutes(server: FastifyInstance) {
     }
   );
 
-  server.post<{ Params: { invitationId: string }; Body: { accept: boolean } }>(
-    ApiRoutes.invitation.respond(":invitationId"),
-    async (request, reply) => {
-      try {
-        const currentUserId = await getUserId(request);
-        
-        // URLパラメータは文字列で来るので数値に変換
-        const invitationId = Number(request.params.invitationId);
-        const { accept } = request.body;
-
-        if (isNaN(invitationId)) {
-          return reply.status(400).send({ message: '無効な招待IDです' });
-        }
-        if (typeof accept !== 'boolean') {
-          return reply.status(400).send({ message: '回答(accept)は必須です' });
-        }
-
-        const result = await planService.respondToInvitation(currentUserId, invitationId, accept);
-
-        return reply.status(200).send(result);
-
-      } catch (error: any) {
-        switch (error.message) {
-          case 'INVITATION_NOT_FOUND':
-            return reply.status(404).send({ message: '招待状が見つからないか、既に処理されています' });
-          case 'FORBIDDEN_NOT_INVITEE':
-            return reply.status(403).send({ message: 'この招待に回答する権限がありません' });
-          default:
-            server.log.error(error);
-            return reply.status(500).send({ message: '処理に失敗しました' });
-        }
-      }
-    }
-  );
 }

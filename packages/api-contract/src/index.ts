@@ -11,6 +11,9 @@ export const ApiRoutes = {
     edit: (planId: string) => `/api/plans/${planId}`,
   },
   invitation: {
-    respond: (invitationId: string) => `/api/invitations/${invitationId}/respond`
+    respond: (invitationId: string) => `/api/invitations/${invitationId}`
+  },
+  notification: {
+    default: '/api/me/notifications',
   }
 } as const;

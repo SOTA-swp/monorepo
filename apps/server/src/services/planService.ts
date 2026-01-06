@@ -146,58 +146,6 @@ export const planService = {
     });
   },
 
-  async respondToInvitation(userId: string, invitationId: number, accept: boolean) {
-    return prisma.$transaction(async (tx) => {
-
-      //招待状の存在確認
-      const invitation = await tx.invitation.findUnique({
-        where: { id: invitationId },
-      });
-
-      if (!invitation) {
-        throw new Error('INVITATION_NOT_FOUND');
-      }
-
-      //本人確認（他人の招待に勝手に答えてはいけない）
-      if (invitation.inviteeId !== userId) {
-        throw new Error('FORBIDDEN_NOT_INVITEE');
-      }
-
-      //承諾の場合の処理
-      if (accept) {
-        // 念のため、既にメンバーになっていないか最終確認
-        const existingMember = await tx.planMember.findUnique({
-          where: {
-            userId_planId: {
-              userId: userId,
-              planId: invitation.planId,
-            },
-          },
-        });
-
-        if (!existingMember) {
-          // メンバーに追加 (権限は一旦 VIEWER か EDITOR か要件次第。ここではEDITOR)
-          await tx.planMember.create({
-            data: {
-              userId: userId,
-              planId: invitation.planId,
-              role: 'EDITOR',
-            },
-          });
-        }
-      }
-
-      // 招待状を削除
-      await tx.invitation.delete({
-        where: { id: invitationId },
-      });
-
-      return {
-        success: true,
-        action: accept ? 'ACCEPTED' : 'DECLINED',
-        planId: invitation.planId
-      };
-    });
-  },
+  
 
 };

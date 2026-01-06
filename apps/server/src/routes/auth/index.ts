@@ -52,6 +52,11 @@ export async function authRoutes(server: FastifyInstance) {
     }
   });
 
+  //ログアウト----------------------------------------------------------------
+  server.post(ApiRoutes.auth.logout, async (request, reply) => {
+    reply.clearCookie('token', { path: '/' });
+    return reply.status(200).send({ message: 'ログアウト成功' });
+  });
 
   //ユーザー情報取得----------------------------------------------------------------
   server.get(ApiRoutes.auth.me, async (request, reply) => {
@@ -70,6 +75,7 @@ export async function authRoutes(server: FastifyInstance) {
     }
   });
 
+  //ユーザー情報編集
   server.put(ApiRoutes.auth.me, async (request, reply) => {
     try {
       const token = request.cookies.token;
@@ -93,46 +99,7 @@ export async function authRoutes(server: FastifyInstance) {
     }
   });
 
-  server.get('/api/me/notifications', async (request, reply) => {
-    try {
-      const token = request.cookies.token;
-      if (!token) return reply.status(401).send({ message: '認証されていません' });
-      const user = await authService.verifyToken(token);
-      if (!user) return reply.status(401).send({ message: '認証エラー' });
-      const notifications = await authService.getMyNotifications(user.id);
-      
-      return reply.status(200).send(notifications);
-    } catch (error: any) {
-      // エラーハンドリング（省略）
-      if (error.message === 'NO_TOKEN' || error.message === 'INVALID_TOKEN') {
-        return reply.status(401).send({ message: 'ログインしてください' });
-      }
-      server.log.error(error);
-      return reply.status(500).send({ message: '通知の取得に失敗しました' });
-    }
-  });
-
-  server.put<{ Body: { ids: string[] } }>('/api/me/notifications/read', async (request, reply) => {
-    try {
-      const token = request.cookies.token;
-      if (!token) return reply.status(401).send({ message: '認証されていません' });
-      const user = await authService.verifyToken(token);
-      if (!user) return reply.status(401).send({ message: '認証エラー' });
-
-      const { ids } = request.body;
-      if (!ids || !Array.isArray(ids)) {
-        return reply.status(400).send({ message: '通知IDのリストが必要です' });
-      }
-
-      await authService.markAsRead(ids);
-      return reply.status(200).send({ success: true });
-
-    } catch (error: any) {
-      server.log.error(error);
-      return reply.status(500).send({ message: '更新に失敗しました' });
-    }
-  });
-
+  //ユーザーIDからユーザー情報を取得
   server.get(ApiRoutes.auth.user(":userId"), async (request, reply) => {
     try {
       const { userId } = request.params as { userId: string };
@@ -155,10 +122,87 @@ export async function authRoutes(server: FastifyInstance) {
     }
   });
 
+  //通知取得
+  server.get(ApiRoutes.notification.default, async (request, reply) => {
+    try {
+      const token = request.cookies.token;
+      if (!token) return reply.status(401).send({ message: '認証されていません' });
+      const user = await authService.verifyToken(token);
+      if (!user) return reply.status(401).send({ message: '認証エラー' });
+      const notifications = await authService.getMyNotifications(user.id);
 
-  //ログアウト----------------------------------------------------------------
-  server.post(ApiRoutes.auth.logout, async (request, reply) => {
-    reply.clearCookie('token', { path: '/' });
-    return reply.status(200).send({ message: 'ログアウト成功' });
+      return reply.status(200).send(notifications);
+    } catch (error: any) {
+      // エラーハンドリング（省略）
+      if (error.message === 'NO_TOKEN' || error.message === 'INVALID_TOKEN') {
+        return reply.status(401).send({ message: 'ログインしてください' });
+      }
+      server.log.error(error);
+      return reply.status(500).send({ message: '通知の取得に失敗しました' });
+    }
   });
+
+  //通知を既読に変更
+  server.patch<{ Body: { ids: string[], isRead: boolean } }>(ApiRoutes.notification.default, async (request, reply) => {
+    try {
+      const token = request.cookies.token;
+      if (!token) return reply.status(401).send({ message: '認証されていません' });
+      const user = await authService.verifyToken(token);
+      if (!user) return reply.status(401).send({ message: '認証エラー' });
+
+      const { ids } = request.body;
+      if (!ids || !Array.isArray(ids)) {
+        return reply.status(400).send({ message: '通知IDのリストが必要です' });
+      }
+
+      await authService.markAsRead(ids);
+      return reply.status(200).send({ success: true });
+
+    } catch (error: any) {
+      server.log.error(error);
+      return reply.status(500).send({ message: '更新に失敗しました' });
+    }
+  });
+
+  //招待への応答 /api/invitation/:invitationId
+  server.patch<{ Params: { invitationId: string }; Body: { accept: boolean } }>(
+    ApiRoutes.invitation.respond(":invitationId"),
+    async (request, reply) => {
+      try {
+        const token = request.cookies.token;
+        if (!token) return reply.status(401).send({ message: '認証されていません' });
+        const user = await authService.verifyToken(token);
+        if (!user) return reply.status(401).send({ message: '認証エラー' });
+        const currentUserId = user.id
+
+        // URLパラメータは文字列で来るので数値に変換
+        const invitationId = Number(request.params.invitationId);
+        const { accept } = request.body;
+
+        if (isNaN(invitationId)) {
+          return reply.status(400).send({ message: '無効な招待IDです' });
+        }
+        if (typeof accept !== 'boolean') {
+          return reply.status(400).send({ message: '回答(accept)は必須です' });
+        }
+
+        const result = await authService.respondToInvitation(currentUserId, invitationId, accept);
+
+        return reply.status(200).send(result);
+
+      } catch (error: any) {
+        switch (error.message) {
+          case 'INVITATION_NOT_FOUND':
+            return reply.status(404).send({ message: '招待状が見つからないか、既に処理されています' });
+          case 'FORBIDDEN_NOT_INVITEE':
+            return reply.status(403).send({ message: 'この招待に回答する権限がありません' });
+          default:
+            server.log.error(error);
+            return reply.status(500).send({ message: '処理に失敗しました' });
+        }
+      }
+    }
+  );
+
+
 }
