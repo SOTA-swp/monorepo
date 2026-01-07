@@ -238,9 +238,16 @@ export const authService = {
       if (plan.creatorId === targetUserId) {
         role = 'OWNER'; // 自分が作成者なら OWNER
       }
+
+      const isLiked = plan.likes.length > 0;
+
+      // レスポンスから余計な `likes` 配列を削除し、`hasLiked` を追加
+      const { likes, ...rest } = plan;
+
       return {
-        ...plan,
-        role: role,
+        ...rest,
+        hasLiked: isLiked,
+        role: role
       };
     });
     return plansWithRole;
@@ -280,9 +287,16 @@ export const authService = {
         if (plan.creatorId === myUserId) {
           role = 'OWNER'; // 自分が作成者なら OWNER
         }
+        // likes配列に中身があれば「自分がいいねしている」ということ
+        const isLiked = plan.likes.length > 0;
+
+        // レスポンスから余計な `likes` 配列を削除し、`hasLiked` を追加
+        const { likes, ...rest } = plan;
+
         return {
-          ...plan,
+          ...rest,
           role: role,
+          hasLiked: isLiked
         };
       });
       return plansWithRole;
