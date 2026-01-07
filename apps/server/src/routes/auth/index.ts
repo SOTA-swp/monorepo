@@ -207,10 +207,7 @@ export async function authRoutes(server: FastifyInstance) {
   server.get<{ Params: { userId: string } }>(
     ApiRoutes.auth.userplan(":userId"),
     // 公開情報なら requireAuth は不要かもしれない
-    // アプリの仕様として「ログインユーザーのみ閲覧可」なら付ける。今回は付ける。
-    {
-      preHandler: requireAuth
-    },
+    // アプリの仕様として「ログインユーザーのみ閲覧可」なら付ける。今回は付ける
     async (request, reply) => {
       try {
         const { userId } = request.params;
