@@ -43,11 +43,38 @@ export const authService = {
         id: true,
         username: true,
         createdAt: true,
-        // 将来的に avatarUrl や bio (自己紹介) が増えたらここに追加
+        _count: {
+          select: {
+            createdPlans: true, // 作成した計画数
+            likes: true, // 自分が「した」いいね数
+          }
+        }
       },
     });
+    if (!user) return null;
 
-    return user;
+    // 2. 「もらったいいね数」を集計
+    // Likeテーブルから、「関連するPlanの作成者(creatorId)がこのユーザー」であるものをカウント
+    const receivedLikesCount = await prisma.like.count({
+      where: {
+        plan: {
+          creatorId: userId
+        }
+      }
+    });
+
+    // 3. レスポンスを整形して返す
+    return {
+      id: user.id,
+      username: user.username,
+      createdAt: user.createdAt,
+      // ★追加: 統計情報オブジェクト
+      stats: {
+        createdPlans: user._count.createdPlans,
+        givenLikes: user._count.likes,
+        receivedLikes: receivedLikesCount
+      }
+    };
   },
 
   async login(email: string, password: string) {
