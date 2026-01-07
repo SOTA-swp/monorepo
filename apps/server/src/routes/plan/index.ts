@@ -22,6 +22,12 @@ interface PlanParams {
   planId: string;
 }
 
+interface SearchQuery {
+  sort?: 'popular' | 'newest';
+  page?: number;
+  limit?: number;
+}
+
 export async function planRoutes(server: FastifyInstance) {
 
   //Plan作成 /api/plans
@@ -213,8 +219,8 @@ export async function planRoutes(server: FastifyInstance) {
 
         const countPromise = planService.getLikeCount(planId);
 
-        const hasLikedPromise = userId 
-          ? planService.hasUserLiked(userId, planId) 
+        const hasLikedPromise = userId
+          ? planService.hasUserLiked(userId, planId)
           : Promise.resolve(false);
 
         // 3. 並列実行
@@ -245,5 +251,28 @@ export async function planRoutes(server: FastifyInstance) {
       }
     }
   );
+
+
+  //計画の検索API /api/plans?sort=popular&page=1&limit=20
+  server.get<{ Querystring: SearchQuery }>(
+    ApiRoutes.plan.create,
+    async (request, reply) => {
+      try {
+        const sort = request.query.sort || 'newest';
+        const page = Math.max(1, Number(request.query.page) || 1);
+        const limit = Math.max(1, Math.min(50, Number(request.query.limit) || 10));
+
+        const result = await planService.searchPlans({ sort, page, limit });
+
+        return reply.status(200).send(result);
+
+      } catch (error) {
+        server.log.error(error);
+        return reply.status(500).send({ message: '計画の取得に失敗しました' });
+      }
+    }
+  );
+
+
 
 }

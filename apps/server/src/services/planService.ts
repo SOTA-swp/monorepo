@@ -284,7 +284,7 @@ export const planService = {
   async hasUserLiked(userId: string, planId: string) {
     const plan = await prisma.plan.findUnique({
       where: { id: planId },
-      select: { id: true } 
+      select: { id: true }
     });
 
     if (!plan) {
@@ -304,7 +304,63 @@ export const planService = {
       }
     });
     return !!like; // true or false
-  }
+  },
+
+  //計画の検索
+  async searchPlans(params: {
+    sort: 'popular' | 'newest';
+    page: number;
+    limit: number;
+  }) {
+    const { sort, page, limit } = params;
+
+    // オフセット計算
+    // page=1 なら skip=0, page=2 なら skip=10 (limit=10の場合)
+    const skip = (page - 1) * limit;
+
+    // ソート条件の決定
+    let orderBy: any = { createdAt: 'desc' }; // デフォルトは新着順
+
+    if (sort === 'popular') {
+      // 人気順 = いいねの数が多い順
+      orderBy = {
+        likes: {
+          _count: 'desc'
+        }
+      };
+    }
+
+    // データ取得と全件数カウントを並列実行
+    const [plans, totalCount] = await prisma.$transaction([
+      prisma.plan.findMany({
+        take: limit, // 取得件数
+        skip: skip,  // 読み飛ばす件数
+        orderBy: orderBy,
+        include: {
+          creator: {
+            select: { username: true } // 作成者名
+          },
+          _count: {
+            select: {
+              members: true,
+              likes: true
+            }
+          }
+        }
+      }),
+      prisma.plan.count() // ページネーション計算用の全件数
+    ]);
+
+    return {
+      plans,
+      pagination: {
+        total: totalCount,
+        page: page,
+        limit: limit,
+        totalPages: Math.ceil(totalCount / limit)
+      }
+    };
+  },
 
 
 
