@@ -11,6 +11,7 @@ import { requireAuth } from '../../lib/auth';
 
 interface CreatePlanBody {
   title: string;
+  description?: string;
 }
 
 interface InviteMemberBody {
@@ -22,14 +23,6 @@ interface PlanParams {
 }
 
 export async function planRoutes(server: FastifyInstance) {
-
-  const getUserId = async (req: any) => {
-    const token = req.cookies.token;
-    if (!token) throw new Error('NO_TOKEN');
-    const user = await authService.verifyToken(token);
-    if (!user) throw new Error('INVALID_TOKEN');
-    return user.id;
-  };
 
   //Plan作成 /api/plans
   server.post<{ Body: CreatePlanBody }>(ApiRoutes.plan.create,
@@ -43,7 +36,10 @@ export async function planRoutes(server: FastifyInstance) {
         const { title } = request.body;
         if (!title) return reply.status(400).send({ message: 'タイトルは必須です' });
 
-        const newPlan = await planService.createPlan(userId, title);
+        let { description } = request.body;
+        if (!description) description = "";
+
+        const newPlan = await planService.createPlan(userId, title, description);
 
         server.log.info(`計画作成成功: ID ${newPlan.id} by User ${userId}`);
         return reply.status(201).send(newPlan);
@@ -59,7 +55,7 @@ export async function planRoutes(server: FastifyInstance) {
 
   // メンバー招待 /api/plans/:planId/invitations
   server.post<{ Params: PlanParams; Body: InviteMemberBody }>(
-    '/api/plans/:planId/invitations',
+    ApiRoutes.invitation.invitation(":planId"),
     {
       preHandler: requireAuth,
     },
@@ -89,7 +85,7 @@ export async function planRoutes(server: FastifyInstance) {
             return reply.status(403).send({ message: '招待権限がありません' });
           case 'USER_NOT_FOUND':
             return reply.status(404).send({ message: 'ユーザーが見つかりません' });
-          case 'ALREADY_MEMBER':
+          case 'ALREADY_INVITED':
             return reply.status(409).send({ message: '既に参加済みです' });
           default:
             server.log.error(error);
@@ -146,7 +142,7 @@ export async function planRoutes(server: FastifyInstance) {
 
   //いいね
   server.post<{ Params: { planId: string } }>(
-    '/api/plans/:planId/likes',
+    ApiRoutes.like.like(":planId"),
     { preHandler: requireAuth },
     async (request, reply) => {
       try {
@@ -164,7 +160,7 @@ export async function planRoutes(server: FastifyInstance) {
 
   // いいね解除
   server.delete<{ Params: { planId: string } }>(
-    '/api/plans/:planId/likes',
+    ApiRoutes.like.like(":planId"),
     { preHandler: requireAuth },
     async (request, reply) => {
       try {
@@ -182,7 +178,7 @@ export async function planRoutes(server: FastifyInstance) {
 
   //計画のいいね数と自分がいいねしてるかを取得
   server.get<{ Params: { planId: string } }>(
-    '/api/plans/:planId/like-status', // パスはこれが分かりやすいです
+    ApiRoutes.like.likestate(":planId"), // パスはこれが分かりやすいです
     { preHandler: requireAuth },      // 自分がいいねしてるか判定するため認証必須
     async (request, reply) => {
       try {

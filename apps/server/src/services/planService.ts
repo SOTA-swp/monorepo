@@ -1,11 +1,12 @@
 import { prisma } from 'db';
 
 export const planService = {
-  async createPlan(userId: string, title: string) {
+  async createPlan(userId: string, title: string, description: string) {
     return await prisma.$transaction(async (tx: any) => {
       const newPlan = await tx.plan.create({
         data: {
           title: title,
+          description: description,
           creator: {
             connect: { id: userId }
           }
