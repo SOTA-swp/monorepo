@@ -208,8 +208,14 @@ export async function authRoutes(server: FastifyInstance) {
     ApiRoutes.auth.userplan(":userId"),
     async (request, reply) => {
       try {
+        let viewingUserId: string | undefined;
+        const token = request.cookies.token;
+        if (token) {
+          const user = await authService.verifyToken(token);
+          if (user) viewingUserId = user.id;
+        }
         const { userId } = request.params;
-        const plans = await authService.getPlansByOwner(userId);
+        const plans = await authService.getPlansByOwner(userId, viewingUserId);
         return reply.status(200).send(plans);
       } catch (error: any) {
         if (error.message === 'USER_NOT_FOUND') {

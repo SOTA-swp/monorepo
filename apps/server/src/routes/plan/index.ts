@@ -264,7 +264,18 @@ export async function planRoutes(server: FastifyInstance) {
         const limit = Math.max(1, Math.min(50, Number(request.query.limit) || 10));
         const query = request.query.q;
 
-        const result = await planService.searchPlans({ sort, page, limit, query });
+        let currentUserId: string | undefined;
+        const token = request.cookies.token;
+
+        if (token) {
+          // トークンがあれば検証してIDを取り出す (失敗しても単にゲスト扱いにするためエラーにはしない)
+          const user = await authService.verifyToken(token);
+          if (user) {
+            currentUserId = user.id;
+          }
+        }
+
+        const result = await planService.searchPlans({ sort, page, limit, query, currentUserId });
 
         return reply.status(200).send(result);
 

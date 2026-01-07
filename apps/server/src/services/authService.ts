@@ -200,7 +200,7 @@ export const authService = {
   },
 
   //ユーザーIdから計画一覧を取得
-  async getPlansByOwner(targetUserId: string) {
+  async getPlansByOwner(targetUserId: string, viewingUserId?: string) {
 
     const userExists = await prisma.user.findUnique({
       where: { id: targetUserId },
@@ -218,11 +218,15 @@ export const authService = {
         createdAt: 'desc',
       },
       include: {
-        creator: { select: { username: true } },
-        _count: { select: { members: true } },
-        members: {
-          where: { userId: targetUserId },
-          select: { userId: true } // 必要なら role カラムも含める
+        creator: {
+          select: { id: true, username: true, email: true }
+        },
+        _count: {
+          select: { members: true, likes: true }
+        },
+        likes: {
+          where: { userId: viewingUserId ?? 'dummy-id' },
+          select: { userId: true }
         }
       }
     });
@@ -256,13 +260,17 @@ export const authService = {
             }
           ]
         },
-        orderBy: { createdAt: 'desc' }, // 最近更新された順が見やすい
+        orderBy: { createdAt: 'desc' },
         include: {
-          creator: { select: { username: true } }, // 誰主催かわかるように
-          _count: { select: { members: true } },
-          members: {
+          creator: {
+            select: { id: true, username: true, email: true }
+          },
+          _count: {
+            select: { members: true, likes: true }
+          },
+          likes: {
             where: { userId: myUserId },
-            select: { userId: true } // 必要なら role カラムも含める
+            select: { userId: true }
           }
         }
       });

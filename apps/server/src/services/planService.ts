@@ -312,8 +312,9 @@ export const planService = {
     page: number;
     limit: number;
     query?: string;
+    currentUserId?: string;
   }) {
-    const { sort, page, limit, query } = params;
+    const { sort, page, limit, query, currentUserId } = params;
 
     // オフセット計算
     // page=1 なら skip=0, page=2 なら skip=10 (limit=10の場合)
@@ -341,7 +342,7 @@ export const planService = {
     }
 
     // データ取得と全件数カウントを並列実行
-    const [plans, totalCount] = await prisma.$transaction([
+    const [plansData, totalCount] = await prisma.$transaction([
       prisma.plan.findMany({
         where: whereCondition,
         take: limit, // 取得件数
@@ -349,13 +350,23 @@ export const planService = {
         orderBy: orderBy,
         include: {
           creator: {
-            select: { username: true } // 作成者名
+            select: {
+              id: true,
+              username: true,
+              email: true,
+            }
           },
           _count: {
             select: {
               members: true,
               likes: true
             }
+          },
+          likes: {
+            where: {
+              userId: currentUserId ?? 'dummy-id-for-guest' // 未ログインならヒットしない文字列を入れる
+            },
+            select: { userId: true }
           }
         }
       }),
@@ -363,6 +374,19 @@ export const planService = {
         where: whereCondition
       }) // ページネーション計算用の全件数
     ]);
+
+    const plans = plansData.map((plan) => {
+      // likes配列に中身があれば「自分がいいねしている」ということ
+      const isLiked = plan.likes.length > 0;
+
+      // レスポンスから余計な `likes` 配列を削除し、`hasLiked` を追加
+      const { likes, ...rest } = plan;
+      
+      return {
+        ...rest,
+        hasLiked: isLiked
+      };
+    });
 
     return {
       plans,
