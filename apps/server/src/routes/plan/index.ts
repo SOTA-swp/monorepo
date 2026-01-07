@@ -149,7 +149,15 @@ export async function planRoutes(server: FastifyInstance) {
         const userId = request.user.id;
         const { planId } = request.params;
         await planService.addLike(userId, planId);
-        return reply.status(201).send({ message: 'いいねしました' });
+        const [count, hasLiked] = await Promise.all([
+          planService.getLikeCount(planId),
+          planService.hasUserLiked(userId, planId)
+        ]);
+        return reply.status(200).send({
+          message: 'いいねしました',
+          count: count,
+          hasLiked: hasLiked
+        });
       } catch (error: any) {
         if (error.message === 'PLAN_NOT_FOUND') return reply.status(404).send({ message: 'プランが見つかりません' });
         server.log.error(error);
@@ -167,7 +175,15 @@ export async function planRoutes(server: FastifyInstance) {
         const userId = request.user.id;
         const { planId } = request.params;
         await planService.removeLike(userId, planId);
-        return reply.status(200).send({ message: 'いいねを解除しました' });
+        const [count, hasLiked] = await Promise.all([
+          planService.getLikeCount(planId),
+          planService.hasUserLiked(userId, planId)
+        ]);
+        return reply.status(200).send({
+          message: 'いいねを解除しました',
+          count: count,
+          hasLiked: hasLiked
+        });
       } catch (error: any) {
         if (error.message === 'PLAN_NOT_FOUND') return reply.status(404).send({ message: 'プランが見つかりません' });
         server.log.error(error);
