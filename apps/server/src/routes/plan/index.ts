@@ -194,12 +194,34 @@ export async function planRoutes(server: FastifyInstance) {
 
   //計画のいいね数と自分がいいねしてるかを取得
   server.get<{ Params: { planId: string } }>(
-    ApiRoutes.like.likestate(":planId"), // パスはこれが分かりやすいです
-    { preHandler: requireAuth },      // 自分がいいねしてるか判定するため認証必須
+    ApiRoutes.like.likestate(":planId"),
     async (request, reply) => {
       try {
         const { planId } = request.params;
-        const userId = request.user.id;
+        let userId: string | null = null;
+
+        const token = request.cookies.token;
+
+        if (token) {
+          // トークンがある場合だけ検証を試みる
+          // (authService.verifyToken は検証失敗時に null を返すと仮定)
+          const user = await authService.verifyToken(token);
+          if (user) {
+            userId = user.id;
+          }
+        }
+
+        const countPromise = planService.getLikeCount(planId);
+
+        const hasLikedPromise = userId 
+          ? planService.hasUserLiked(userId, planId) 
+          : Promise.resolve(false);
+
+        // 3. 並列実行
+        const [count, hasLiked] = await Promise.all([
+          countPromise,
+          hasLikedPromise
+        ]);
 
         // 1. プランの存在確認 (countのエラーハンドリングをここで行う)
         // サービス層の getLikeCount にプラン存在確認ロジックを入れた場合は
@@ -208,10 +230,6 @@ export async function planRoutes(server: FastifyInstance) {
 
         // 2. 並列実行して高速化 (Promise.all)
         // 数と状態を同時にDBに問い合わせます
-        const [count, hasLiked] = await Promise.all([
-          planService.getLikeCount(planId),
-          planService.hasUserLiked(userId, planId)
-        ]);
 
         return reply.status(200).send({
           count: count,
