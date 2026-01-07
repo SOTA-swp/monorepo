@@ -239,4 +239,25 @@ export async function authRoutes(server: FastifyInstance) {
       }
     }
   );
+
+  //任意のユーザーがいいね下計画一覧 /api/users/:userId/likes
+  server.get<{ Params: { userId: string } }>(
+    ApiRoutes.auth.userlike(":userId"),
+    async (request, reply) => {
+      try {
+        const { userId } = request.params;
+
+        const plans = await authService.getLikedPlansByUser(userId);
+
+        return reply.status(200).send(plans);
+
+      } catch (error: any) {
+        if (error.message === 'USER_NOT_FOUND') {
+          return reply.status(404).send({ message: '指定されたユーザーが見つかりません' });
+        }
+        server.log.error(error);
+        return reply.status(500).send({ message: '取得に失敗しました' });
+      }
+    }
+  );
 }

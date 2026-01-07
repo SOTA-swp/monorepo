@@ -267,5 +267,48 @@ export const authService = {
     } catch {
       return null;
     }
-  }
+  },
+
+  //任意のユーザーがいいねした計画一覧を取得
+  async getLikedPlansByUser(targetUserId: string) {
+    const userExists = await prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: { id: true }
+    });
+    if (!userExists) {
+      throw new Error('USER_NOT_FOUND');
+    }
+
+    const likes = await prisma.like.findMany({
+      where: {
+        userId: targetUserId, // そのユーザーがいいねしたもの
+      },
+      include: {
+        // 関連するプランの情報を取得
+        plan: {
+          include: {
+            // プランの作成者情報
+            creator: {
+              select: { username: true }
+            },
+            // メンバー数やいいね数
+            _count: {
+              select: { members: true, likes: true }
+            }
+          }
+        }
+      }
+    });
+
+    // 3. 構造を整形
+    // 今の形: [{ id:..., plan: { title: "北海道", ... } }, ...]
+    // 欲しい形: [{ title: "北海道", ... }, ...]
+    const likedPlans = likes.map((like) => {
+      return {
+        ...like.plan,
+      };
+    });
+
+    return likedPlans;
+  },
 };
