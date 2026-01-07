@@ -26,6 +26,7 @@ interface SearchQuery {
   sort?: 'popular' | 'newest';
   page?: number;
   limit?: number;
+  q?: string;
 }
 
 export async function planRoutes(server: FastifyInstance) {
@@ -261,8 +262,9 @@ export async function planRoutes(server: FastifyInstance) {
         const sort = request.query.sort || 'newest';
         const page = Math.max(1, Number(request.query.page) || 1);
         const limit = Math.max(1, Math.min(50, Number(request.query.limit) || 10));
+        const query = request.query.q;
 
-        const result = await planService.searchPlans({ sort, page, limit });
+        const result = await planService.searchPlans({ sort, page, limit, query });
 
         return reply.status(200).send(result);
 

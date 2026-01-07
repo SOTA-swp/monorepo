@@ -311,12 +311,22 @@ export const planService = {
     sort: 'popular' | 'newest';
     page: number;
     limit: number;
+    query?: string;
   }) {
-    const { sort, page, limit } = params;
+    const { sort, page, limit, query } = params;
 
     // オフセット計算
     // page=1 なら skip=0, page=2 なら skip=10 (limit=10の場合)
     const skip = (page - 1) * limit;
+
+    const whereCondition: any = {};
+
+    if (query) {
+      // タイトルに query が含まれるものを検索 (部分一致)
+      whereCondition.title = {
+        contains: query,
+      };
+    }
 
     // ソート条件の決定
     let orderBy: any = { createdAt: 'desc' }; // デフォルトは新着順
@@ -333,6 +343,7 @@ export const planService = {
     // データ取得と全件数カウントを並列実行
     const [plans, totalCount] = await prisma.$transaction([
       prisma.plan.findMany({
+        where: whereCondition,
         take: limit, // 取得件数
         skip: skip,  // 読み飛ばす件数
         orderBy: orderBy,
@@ -348,7 +359,9 @@ export const planService = {
           }
         }
       }),
-      prisma.plan.count() // ページネーション計算用の全件数
+      prisma.plan.count({
+        where: whereCondition
+      }) // ページネーション計算用の全件数
     ]);
 
     return {
