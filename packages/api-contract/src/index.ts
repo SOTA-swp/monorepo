@@ -6,7 +6,7 @@ export const ApiRoutes = {
     me: "/api/me",
     plans: "/api/me/plans",
     user: (userId: string) => `/api/users/${userId}`,
-    userplan: (userId: string) => `/api/users/:${userId}` + 'plans',
+    userplan: (userId: string) => `/api/users/${userId}` + '/plans',
   },
   plan: {
     create: "/api/plans",

@@ -191,10 +191,28 @@ export const authService = {
         createdAt: 'desc',
       },
       include: {
-        _count: { select: { members: true } }
+        creator: { select: { username: true } },
+        _count: { select: { members: true } },
+        members: {
+          where: { userId: targetUserId },
+          select: { userId: true } // 必要なら role カラムも含める
+        }
       }
     });
-    return plans;
+
+    //そのユーザーが作成したPlanだけを取得してるから全部OWNERになるだけで正直いらんかも
+    const plansWithRole = plans.map((plan) => {
+      let role = 'MEMBER'; // デフォルトはメンバー
+
+      if (plan.creatorId === targetUserId) {
+        role = 'OWNER'; // 自分が作成者なら OWNER
+      }
+      return {
+        ...plan,
+        role: role,
+      };
+    });
+    return plansWithRole;
   },
 
   //自分が参加中の計画一覧を取得
@@ -214,10 +232,25 @@ export const authService = {
         orderBy: { createdAt: 'desc' }, // 最近更新された順が見やすい
         include: {
           creator: { select: { username: true } }, // 誰主催かわかるように
-          _count: { select: { members: true } }
+          _count: { select: { members: true } },
+          members: {
+            where: { userId: myUserId },
+            select: { userId: true } // 必要なら role カラムも含める
+          }
         }
       });
-      return plans;
+      const plansWithRole = plans.map((plan) => {
+        let role = 'MEMBER'; // デフォルトはメンバー
+
+        if (plan.creatorId === myUserId) {
+          role = 'OWNER'; // 自分が作成者なら OWNER
+        }
+        return {
+          ...plan,
+          role: role,
+        };
+      });
+      return plansWithRole;
     } catch (error) {
       throw error;
     }

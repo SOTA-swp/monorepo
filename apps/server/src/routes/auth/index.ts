@@ -206,8 +206,6 @@ export async function authRoutes(server: FastifyInstance) {
   //ユーザーの作成した計画を取得
   server.get<{ Params: { userId: string } }>(
     ApiRoutes.auth.userplan(":userId"),
-    // 公開情報なら requireAuth は不要かもしれない
-    // アプリの仕様として「ログインユーザーのみ閲覧可」なら付ける。今回は付ける
     async (request, reply) => {
       try {
         const { userId } = request.params;
@@ -231,10 +229,10 @@ export async function authRoutes(server: FastifyInstance) {
     },
     async (request, reply) => {
       try {
-      const myUserId = request.user.id;
+        const myUserId = request.user.id;
 
-      const plans = await authService.getMyParticipatingPlans(myUserId);
-      return reply.status(200).send(plans);
+        const plans = await authService.getMyParticipatingPlans(myUserId);
+        return reply.status(200).send(plans);
       } catch (error: any) {
         server.log.error(error);
         return reply.status(500).send({ message: '計画一覧の取得に失敗しました' });
