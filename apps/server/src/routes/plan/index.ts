@@ -286,6 +286,27 @@ export async function planRoutes(server: FastifyInstance) {
     }
   );
 
+  server.get<{ Params: { planId: string } }>(
+    ApiRoutes.plan.members(":planId"),
+    { preHandler: requireAuth },
+    async (request, reply) => {
+      try {
+        const { planId } = request.params;
+
+        const result = await planService.getPlanMembers(planId);
+
+        return reply.status(200).send(result);
+
+      } catch (error: any) {
+        if (error.message === 'PLAN_NOT_FOUND') {
+          return reply.status(404).send({ message: '計画が見つかりません' });
+        }
+        server.log.error(error);
+        return reply.status(500).send({ message: 'メンバー情報の取得に失敗しました' });
+      }
+    }
+  );
+
 
 
 }

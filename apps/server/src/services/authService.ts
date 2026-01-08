@@ -122,7 +122,7 @@ export const authService = {
       include: {
         // 通知の「元」になった人の情報（名前やアイコン用）
         triggerUser: {
-          select: { id: true, username: true, email: true }
+          select: { id: true, username: true }
         },
         // 関連するプランの情報（タイトル用）
         plan: {
@@ -219,7 +219,7 @@ export const authService = {
       },
       include: {
         creator: {
-          select: { id: true, username: true, email: true }
+          select: { id: true, username: true }
         },
         _count: {
           select: { members: true, likes: true }
@@ -270,7 +270,7 @@ export const authService = {
         orderBy: { createdAt: 'desc' },
         include: {
           creator: {
-            select: { id: true, username: true, email: true }
+            select: { id: true, username: true }
           },
           _count: {
             select: { members: true, likes: true }
