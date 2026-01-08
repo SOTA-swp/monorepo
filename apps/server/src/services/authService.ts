@@ -360,4 +360,17 @@ export const authService = {
 
     return likedPlans;
   },
+
+  // 未読の通知を取得
+  async getUnreadCount(userId: string) {
+    const count = await prisma.notification.count({
+      where: {
+        userId: userId,
+        isRead: false, // 未読のものだけ
+      },
+    });
+
+    return count;
+  },
+  
 };

@@ -20,6 +20,7 @@ export const ApiRoutes = {
   },
   notification: {
     default: '/api/me/notifications',
+    unread: '/api/me/notifications/unread'
   },
   like :{
     like: (planId: string) => `/api/plans/${planId}`+'/likes',

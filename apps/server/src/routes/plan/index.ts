@@ -92,7 +92,7 @@ export async function planRoutes(server: FastifyInstance) {
             return reply.status(403).send({ message: '招待権限がありません' });
           case 'USER_NOT_FOUND':
             return reply.status(404).send({ message: 'ユーザーが見つかりません' });
-          case 'ALREADY_INVITED':
+          case 'ALREADY_MEMBER':
             return reply.status(409).send({ message: '既に参加済みです' });
           default:
             server.log.error(error);

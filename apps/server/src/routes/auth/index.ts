@@ -266,4 +266,22 @@ export async function authRoutes(server: FastifyInstance) {
       }
     }
   );
+
+  server.get(
+    ApiRoutes.notification.unread,
+    { preHandler: requireAuth }, // ★ログイン必須
+    async (request, reply) => {
+      try {
+        const user = (request as any).user; 
+
+        const count = await authService.getUnreadCount(user.id);
+
+        return reply.status(200).send({ count });
+      } catch (error) {
+        server.log.error(error);
+        return reply.status(500).send({ message: '通知数の取得に失敗しました' });
+      }
+    }
+  );
+
 }
