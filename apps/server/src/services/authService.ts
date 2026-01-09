@@ -319,7 +319,7 @@ export const authService = {
   },
 
   //任意のユーザーがいいねした計画一覧を取得
-  async getLikedPlansByUser(targetUserId: string) {
+  async getLikedPlansByUser(targetUserId: string, viewingUserId?: string) {
     const userExists = await prisma.user.findUnique({
       where: { id: targetUserId },
       select: { id: true }
@@ -343,6 +343,10 @@ export const authService = {
             // メンバー数やいいね数
             _count: {
               select: { members: true, likes: true }
+            },
+            likes: {
+              where: { userId: viewingUserId ?? 'dummy-id' },
+              select: { userId: true }
             }
           }
         }
@@ -352,13 +356,20 @@ export const authService = {
     // 3. 構造を整形
     // 今の形: [{ id:..., plan: { title: "北海道", ... } }, ...]
     // 欲しい形: [{ title: "北海道", ... }, ...]
-    const likedPlans = likes.map((like) => {
+    return likes.map((record) => {
+      const plan = record.plan;
+      
+      // 判定ロジック
+      const isLiked = plan.likes.length > 0;
+      
+      // 不要な配列(likes)を除去して整形
+      const { likes: _userLikes, ...planRest } = plan;
+
       return {
-        ...like.plan,
+        ...planRest,
+        hasLiked: isLiked, // ★追加
       };
     });
-
-    return likedPlans;
   },
 
   // 未読の通知を取得
@@ -372,5 +383,5 @@ export const authService = {
 
     return count;
   },
-  
+
 };

@@ -253,7 +253,14 @@ export async function authRoutes(server: FastifyInstance) {
       try {
         const { userId } = request.params;
 
-        const plans = await authService.getLikedPlansByUser(userId);
+        let viewingUserId: string | undefined;
+        const token = request.cookies.token;
+        if (token) {
+          const user = await authService.verifyToken(token);
+          if (user) viewingUserId = user.id;
+        }
+
+        const plans = await authService.getLikedPlansByUser(userId, viewingUserId);
 
         return reply.status(200).send(plans);
 

@@ -400,7 +400,7 @@ export const planService = {
     return {
       // 参加メンバー
       active: members.map((m) => ({
-        userId: m.userId,
+        id: m.userId,
         username: m.user.username,
         role: m.role, // 'OWNER' | 'EDITOR' | 'VIEWER'
       })),
@@ -409,7 +409,7 @@ export const planService = {
         // invitee が null の場合の対策
         return {
           // ユーザーID: 登録済みならID、未登録なら null
-          userId: i.invitee?.id ?? null,
+          id: i.invitee?.id ?? null,
           // 名前: 登録済みならユーザー名、未登録なら "未登録" や メールアドレス等
           username: i.invitee?.username ?? '未登録ユーザー', 
           invitationId: i.id,
