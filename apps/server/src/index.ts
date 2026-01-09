@@ -6,6 +6,7 @@ import { authRoutes } from './routes/auth';
 import { planSocketRoutes } from './routes/plan/socket';
 import fastifyWebsocket from '@fastify/websocket';
 import { planRoutes } from './routes/plan';
+import { planRouteRoutes } from './routes/plan/route';
 
 // Yjs永続化の初期設定
 setupYjsPersistence();
@@ -34,6 +35,7 @@ const start = async () => {
     await server.register(authRoutes);
     await server.register(planSocketRoutes);
     await server.register(planRoutes);
+    await server.register(planRouteRoutes);
 
     await server.listen({ port: 4000 });
     console.log('✅ Fastify server listening on http://localhost:4000');
