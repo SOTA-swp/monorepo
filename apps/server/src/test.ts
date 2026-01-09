@@ -22,7 +22,6 @@ console.log('Payload:', JSON.stringify(payload, null, 2));
 
 async function runTest() {
   try {
-    // Node.js 18以上なら fetch が標準で使えます
     const response = await fetch(SERVER_URL, {
       method: 'POST',
       headers: {

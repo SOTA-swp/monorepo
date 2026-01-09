@@ -125,7 +125,7 @@ export async function planRoutes(server: FastifyInstance) {
   );
 
   //計画の基本情報の編集 /api/plans/:planId PATCH
-  server.patch<{ Params: { planId: string }; Body: { title?: string; description?: string } }>(
+  server.patch<{ Params: { planId: string }; Body: { title?: string; description?: string, isPublic?: boolean } }>(
     ApiRoutes.plan.edit(":planId"),
     {
       preHandler: requireAuth
@@ -331,6 +331,33 @@ export async function planRoutes(server: FastifyInstance) {
       } catch (error) {
         server.log.error(error);
         return reply.status(500).send({ message: '計画情報の取得に失敗しました' });
+      }
+    }
+  );
+
+  //計画をインポート
+  server.post<{ Params: { planId: string } }>(
+    '/api/plans/:planId/import',
+    { preHandler: requireAuth },
+    async (request, reply) => {
+      try {
+        const { planId } = request.params;
+        const user = (request as any).user;
+
+        const newPlan = await planService.importPlan(planId, user.id);
+
+        return reply.status(201).send(newPlan);
+
+      } catch (error: any) {
+        if (error.message === 'PLAN_NOT_FOUND') {
+          return reply.status(404).send({ message: '計画が見つかりません' });
+        }
+        if (error.message === 'PLAN_IS_PRIVATE') {
+          return reply.status(403).send({ message: 'この計画は非公開のためインポートできません' });
+        }
+        
+        server.log.error(error);
+        return reply.status(500).send({ message: 'インポートに失敗しました' });
       }
     }
   );

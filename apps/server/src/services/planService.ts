@@ -1,4 +1,5 @@
 import { prisma } from 'db';
+import { duplicateYjsDoc } from '../lib/yjs/setup';
 
 export const planService = {
 
@@ -129,6 +130,7 @@ export const planService = {
   async updatePlan(userId: string, planId: string, data: {
     title?: string;
     description?: string;
+    isPublic?: boolean;
   }) {
     const plan = await prisma.plan.findUnique({ where: { id: planId } });
 
@@ -434,5 +436,47 @@ export const planService = {
 
     return plan;
   },
+
+  // 計画をインポート
+  async importPlan(sourcePlanId: string, userId: string) {
+    // 元の計画を取得 & 権限チェック
+    const sourcePlan = await prisma.plan.findUnique({
+      where: { id: sourcePlanId }
+    });
+
+    if (!sourcePlan) {
+      throw new Error('PLAN_NOT_FOUND');
+    }
+
+    // 公開されているかをチェック
+    if (!sourcePlan.isPublic) {
+      throw new Error('PLAN_IS_PRIVATE');
+    }
+
+    // Prisma: 新しい計画枠を作成
+    const newPlan = await prisma.plan.create({
+      data: {
+        title: `${sourcePlan.title} のコピー`,
+        description: sourcePlan.description,
+        
+        // 重要な設定
+        isPublic: false, 
+        creatorId: userId, 
+        
+      }
+    });
+
+    try {
+      // Yjs: ホワイトボードの中身を複製
+      await duplicateYjsDoc(sourcePlan.id, newPlan.id);
+      
+      return newPlan;
+
+    } catch (error) {
+      // Yjsのコピーに失敗した場合、作ったPlanも消す
+      await prisma.plan.delete({ where: { id: newPlan.id } });
+      throw error;
+    }
+  }
 
 };
