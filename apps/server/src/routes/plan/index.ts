@@ -307,6 +307,34 @@ export async function planRoutes(server: FastifyInstance) {
     }
   );
 
+  server.get<{ Params: { planId: string } }>(
+    ApiRoutes.plan.edit(":planId"),
+    async (request, reply) => {
+      try {
+        const { planId } = request.params;
+
+        // Service呼び出し
+        const plan = await planService.getPlanDetail(planId);
+
+        if (!plan) {
+          return reply.status(404).send({ message: '計画が見つかりません' });
+        }
+
+        // ▼ もし「非公開の計画は、メンバー以外に見せたくない」場合はここでチェック
+        // if (!plan.isPublic) {
+        //    ここでCookieからuserIdを取り出し、メンバーかどうか確認する処理が必要
+        //    メンバーでなければ return reply.status(403).send(...)
+        // }
+
+        return reply.status(200).send(plan);
+
+      } catch (error) {
+        server.log.error(error);
+        return reply.status(500).send({ message: '計画情報の取得に失敗しました' });
+      }
+    }
+  );
+
 
 
 }

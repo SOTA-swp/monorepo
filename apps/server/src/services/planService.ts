@@ -419,4 +419,20 @@ export const planService = {
     };
   },
 
+  //計画の情報を取得
+  async getPlanDetail(planId: string) {
+    const plan = await prisma.plan.findUnique({
+      where: { id: planId },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        isPublic: true,   // 公開設定
+        creatorId: true,  // 「自分が作者か」判定用にあると便利
+      }
+    });
+
+    return plan;
+  },
+
 };
