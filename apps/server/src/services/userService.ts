@@ -99,16 +99,25 @@ export const userService = {
     }
 
     // Prisma: 新しい計画枠を作成
-    const newPlan = await prisma.plan.create({
-      data: {
-        title: `${sourcePlan.title} のコピー`,
-        description: sourcePlan.description,
+    const newPlan = await prisma.$transaction(async (tx) => {
+      const plan = await tx.plan.create({
+        data: {
+          title: `${sourcePlan.title} のコピー`,
+          description: sourcePlan.description,
+          isPublic: false,
+          creatorId: userId,
+        }
+      });
 
-        // 重要な設定
-        isPublic: false,
-        creatorId: userId,
+      await tx.planMember.create({
+        data: {
+          userId: userId,
+          planId: plan.id,
+          role: 'OWNER',
+        },
+      });
 
-      }
+      return plan;
     });
 
     try {
@@ -138,7 +147,9 @@ export const userService = {
     // page=1 なら skip=0, page=2 なら skip=10 (limit=10の場合)
     const skip = (page - 1) * limit;
 
-    const whereCondition: any = {};
+    const whereCondition: any = {
+      isPublic: true,
+    };
 
     if (query) {
       // タイトルに query が含まれるものを検索 (部分一致)
@@ -148,8 +159,7 @@ export const userService = {
     }
 
     // ソート条件の決定
-    let orderBy: any = { createdAt: 'desc' }; // デフォルトは新着順
-
+    let orderBy: any = { createdAt: 'desc' };
     if (sort === 'popular') {
       // 人気順 = いいねの数が多い順
       orderBy = {
@@ -181,27 +191,44 @@ export const userService = {
           },
           likes: {
             where: {
-              userId: currentUserId ?? 'dummy-id-for-guest' // 未ログインならヒットしない文字列を入れる
+              userId: currentUserId ?? 'dummy-id-for-guest'
             },
             select: { userId: true }
+          },
+          members: {
+            where: {
+              userId: currentUserId ?? 'dummy-id-for-guest'
+            },
+            select: { role: true }
           }
         }
       }),
       prisma.plan.count({
         where: whereCondition
-      }) // ページネーション計算用の全件数
+      })
     ]);
 
     const plans = plansData.map((plan) => {
-      // likes配列に中身があれば「自分がいいねしている」ということ
       const isLiked = plan.likes.length > 0;
 
-      // レスポンスから余計な `likes` 配列を削除し、`hasLiked` を追加
-      const { likes, ...rest } = plan;
+      // Role判定
+      let role: 'OWNER' | 'MEMBER' | 'VIEWER' | undefined;
+      if (currentUserId) {
+        if (plan.creatorId === currentUserId) {
+          role = 'OWNER';
+        } else if (plan.members.length > 0) {
+          role = 'MEMBER';
+        } else {
+          role = 'VIEWER';
+        }
+      }
+
+      const { likes, members, ...rest } = plan;
 
       return {
         ...rest,
-        hasLiked: isLiked
+        hasLiked: isLiked,
+        role: role
       };
     });
 
