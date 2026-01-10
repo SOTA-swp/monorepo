@@ -12,7 +12,8 @@ export const ApiRoutes = {
   plan: {
     create: "/api/plans",
     edit: (planId: string) => `/api/plans/${planId}`,
-    members: (planId: string) => `/api/plans/${planId}` + '/members'
+    members: (planId: string) => `/api/plans/${planId}` + '/members',
+    import: (planId: string) => `api/plans/${planId}` + '/import',
   },
   invitation: {
     invitation: (planId: string) => `/api/plans/${planId}` + '/invitations',
