@@ -99,16 +99,25 @@ export const userService = {
     }
 
     // Prisma: 新しい計画枠を作成
-    const newPlan = await prisma.plan.create({
-      data: {
-        title: `${sourcePlan.title} のコピー`,
-        description: sourcePlan.description,
+    const newPlan = await prisma.$transaction(async (tx) => {
+      const plan = await tx.plan.create({
+        data: {
+          title: `${sourcePlan.title} のコピー`,
+          description: sourcePlan.description,
+          isPublic: false,
+          creatorId: userId,
+        }
+      });
 
-        // 重要な設定
-        isPublic: false,
-        creatorId: userId,
+      await tx.planMember.create({
+        data: {
+          userId: userId,
+          planId: plan.id,
+          role: 'OWNER',
+        },
+      });
 
-      }
+      return plan;
     });
 
     try {
