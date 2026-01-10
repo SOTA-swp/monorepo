@@ -338,7 +338,7 @@ export const authService = {
           include: {
             // プランの作成者情報
             creator: {
-              select: { username: true }
+              select: { id: true, username: true }
             },
             // メンバー数やいいね数
             _count: {
