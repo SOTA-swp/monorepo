@@ -2,6 +2,7 @@
 import { FastifyInstance } from 'fastify';
 import { routeService } from '../../services/routeService';
 import { LatLng, TravelMode } from '../../types/route';
+import { ApiRoutes } from '../../../../../packages/api-contract/src';
 
 // リクエストボディの型定義
 interface CalculateRouteBody {
@@ -11,7 +12,7 @@ interface CalculateRouteBody {
 
 export async function planRouteRoutes(server: FastifyInstance) {
   server.post<{ Body: CalculateRouteBody }>(
-    '/api/routes/calculate',
+    ApiRoutes.routes.calculate,
     async (request, reply) => {
       const { locations, mode = 'DRIVE' } = request.body;
 

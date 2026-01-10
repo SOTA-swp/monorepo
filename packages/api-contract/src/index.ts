@@ -26,4 +26,7 @@ export const ApiRoutes = {
     like: (planId: string) => `/api/plans/${planId}`+'/likes',
     likestate: (planId: string) => `/api/plans/${planId}`+'/like-status'
   },
+  routes :{
+    calculate: '/api/routes/calculate'
+  }
 } as const;

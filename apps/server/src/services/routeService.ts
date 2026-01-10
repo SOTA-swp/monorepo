@@ -38,7 +38,7 @@ export const routeService = {
                 'Content-Type': 'application/json',
                 'X-Goog-Api-Key': apiKey,
                 // 欲しいフィールドだけ指定
-                'X-Goog-FieldMask': 'routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline',
+                'X-Goog-FieldMask': 'routes.duration,routes.polyline.encodedPolyline',
               },
             }
           );
@@ -56,7 +56,6 @@ export const routeService = {
             fromIndex: i,
             toIndex: i + 1,
             durationSeconds: isNaN(durationSeconds) ? 0 : durationSeconds,
-            distanceMeters: route.distanceMeters,
             encodedPolyline: route.polyline?.encodedPolyline,
           };
         } catch (error) {

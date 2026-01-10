@@ -85,7 +85,7 @@ export async function userActivityRoutes(server: FastifyInstance) {
     }
   );
 
-  //計画の検索API /api/plans?sort=popular&page=1&limit=20 GET
+  //計画の検索API /api/plans?sort=popular&page=1&limit=10 GET
   server.get<{ Querystring: SearchQuery }>(
     ApiRoutes.plan.create,
     async (request, reply) => {
