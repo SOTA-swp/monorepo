@@ -43,7 +43,8 @@ export async function authRoutes(server: FastifyInstance) {
         maxAge: 24 * 60 * 60 * 1000,
       });
 
-      return reply.status(200).send(user);
+      // Cookieだけでなくレスポンスボディでもトークンを返す（WebSocket認証用）
+      return reply.status(200).send({ user, token });
 
     } catch (error: any) {
       if (error.message === 'INVALID_CREDENTIALS') {

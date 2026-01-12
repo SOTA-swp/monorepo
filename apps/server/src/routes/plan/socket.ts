@@ -29,7 +29,13 @@ export async function planSocketRoutes(server: FastifyInstance) {
       return;
     }
 
-    const token = request.cookies.token;
+    // Cookie または Query Parameter からトークンを取得
+    let token = request.cookies.token;
+    if (!token) {
+      const query = request.query as { token?: string };
+      token = query.token;
+    }
+
     server.log.info(`[WS Debug] Token exists: ${!!token}`);
     let userId: string;
 
