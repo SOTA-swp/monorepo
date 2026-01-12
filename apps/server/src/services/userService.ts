@@ -208,7 +208,7 @@ export const userService = {
       })
     ]);
 
-    const plans = plansData.map((plan) => {
+    const plans = plansData.map((plan: any) => {
       const isLiked = plan.likes.length > 0;
 
       // Role判定
@@ -276,7 +276,7 @@ export const userService = {
     });
 
     //そのユーザーが作成したPlanだけを取得してるから全部OWNERになるだけで正直いらんかも
-    const plansWithRole = plans.map((plan) => {
+    const plansWithRole = plans.map((plan: any) => {
       let role = 'MEMBER'; // デフォルトはメンバー
 
       if (plan.creatorId === targetUserId) {
@@ -325,7 +325,7 @@ export const userService = {
           }
         }
       });
-      const plansWithRole = plans.map((plan) => {
+      const plansWithRole = plans.map((plan: any) => {
         let role = 'MEMBER'; // デフォルトはメンバー
 
         if (plan.creatorId === myUserId) {
