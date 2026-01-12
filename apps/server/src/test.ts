@@ -8,12 +8,12 @@ const payload = {
   mode: 'DRIVE',
   locations: [
     { lat: 35.681236, lng: 139.767125 }, // 東京駅
-    { lat: 35.710063, lng: 139.810700 },  // スカイツリー
+    { lat: 35.710063, lng: 139.8107 }, // スカイツリー
     { lat: 35.681236, lng: 139.767125 }, // 東京駅
-    { lat: 35.710063, lng: 139.810700 },  // スカイツリー
+    { lat: 35.710063, lng: 139.8107 }, // スカイツリー
     { lat: 35.681236, lng: 139.767125 }, // 東京駅
-    { lat: 35.710063, lng: 139.810700 },  // スカイツリー
-  ]
+    { lat: 35.710063, lng: 139.8107 }, // スカイツリー
+  ],
 };
 
 console.log('--- ルート計算テスト開始 ---');
@@ -25,9 +25,9 @@ async function runTest() {
     const response = await fetch(SERVER_URL, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
 
     const status = response.status;
@@ -56,9 +56,8 @@ async function runTest() {
     } else {
       console.warn('⚠️ データが空です。APIキーや課金設定を確認してください。');
     }
-
   } catch (error) {
-    console.error('❌ 通信エラー:', error.message);
+    console.error('❌ 通信エラー:', (error as Error).message);
     console.log('サーバー(localhost:4000)は起動していますか？');
   }
 }
