@@ -41,7 +41,7 @@ export async function planSocketRoutes(server: FastifyInstance) {
 
     if (!token) {
       server.log.warn('[WS Debug] No token found in cookies');
-      connection.socket.close(1008, '認証トークンがありません');
+      //connection.socket.close(1008, '認証トークンがありません');
       return;
     }
 
