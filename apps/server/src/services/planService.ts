@@ -1,4 +1,4 @@
-import { prisma } from 'db';
+import { prisma, Prisma } from 'db';
 
 
 export const planService = {
@@ -160,13 +160,13 @@ export const planService = {
     // 3. データ整形
     return {
       // 参加メンバー
-      active: members.map((m) => ({
+      active: members.map((m: any) => ({
         id: m.userId,
         username: m.user.username,
         role: m.role, // 'OWNER' | 'EDITOR' | 'VIEWER'
       })),
       // 招待中メンバー
-      invited: invitations.map((i) => {
+      invited: invitations.map((i: any) => {
         // invitee が null の場合の対策
         return {
           // ユーザーID: 登録済みならID、未登録なら null

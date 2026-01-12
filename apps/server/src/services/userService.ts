@@ -1,4 +1,4 @@
-import { prisma } from 'db';
+import { prisma, Prisma } from 'db';
 import { duplicateYjsDoc } from '../lib/yjs/setup';
 
 export const userService = {
