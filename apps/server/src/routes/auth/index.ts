@@ -38,7 +38,8 @@ export async function authRoutes(server: FastifyInstance) {
       reply.setCookie('token', token, {
         path: '/',
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: true, // SameSite: None には Secure: true が必須
+        sameSite: 'none', // クロスドメイン(Renderの別サブドメイン間)で送信するために必要
         maxAge: 24 * 60 * 60 * 1000,
       });
 
