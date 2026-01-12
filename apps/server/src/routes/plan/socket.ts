@@ -18,16 +18,21 @@ export async function planSocketRoutes(server: FastifyInstance) {
     // URLパラメータの取得
     const params = request.params as { planId: string };
     const planId = params.planId;
+    
+    server.log.info(`[WS Debug] Connection attempt for PlanID: ${planId}`);
 
     if (!planId) {
+      server.log.warn('[WS Debug] No planId provided');
       connection.socket.close(1008, '無効な計画IDです');
       return;
     }
 
     const token = request.cookies.token;
+    server.log.info(`[WS Debug] Token exists: ${!!token}`);
     let userId: string;
 
     if (!token) {
+      server.log.warn('[WS Debug] No token found in cookies');
       connection.socket.close(1008, '認証トークンがありません');
       return;
     }
@@ -35,7 +40,9 @@ export async function planSocketRoutes(server: FastifyInstance) {
     try {
       const payload = jwt.verify(token, JWT_SECRET) as { userId: string };
       userId = payload.userId;
+      server.log.info(`[WS Debug] Token verified. UserId: ${userId}`);
     } catch (error) {
+      server.log.error(`[WS Debug] Token verification failed: ${error}`);
       connection.socket.close(1008, '認証トークンが無効です');
       return;
     }
