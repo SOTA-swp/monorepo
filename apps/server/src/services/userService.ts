@@ -99,7 +99,7 @@ export const userService = {
     }
 
     // Prisma: 新しい計画枠を作成
-    const newPlan = await prisma.$transaction(async (tx) => {
+    const newPlan = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const plan = await tx.plan.create({
         data: {
           title: `${sourcePlan.title} のコピー`,
