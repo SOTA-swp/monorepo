@@ -10,7 +10,7 @@ export const routeService = {
    * 例: [A, B, C] が渡されたら、[A->B, B->C] の2つの区間データを返す
    */
   async calculateRoutes(locations: LatLng[], mode: TravelMode = 'DRIVE'): Promise<RouteSegment[]> {
-    const apiKey = '';
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
     if (!apiKey) throw new Error('GOOGLE_MAPS_API_KEY is not configured');
 
     // 計算リクエストのPromise配列を作成

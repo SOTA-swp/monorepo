@@ -27,10 +27,10 @@ const start = async () => {
   try {
     await server.register(cookie);
     await server.register(cors, {
-      origin: "http://localhost:3000",
+      origin: process.env.FRONTEND_URL || "http://localhost:3000",
       credentials: true,
     });
-    
+
     await server.register(fastifyWebsocket);
 
     await server.register(authRoutes);
@@ -39,7 +39,7 @@ const start = async () => {
     await server.register(notificationRoutes);
     await server.register(userRoutes);
 
-    await server.listen({ port: 4000 });
+    await server.listen({ port: 4000, host: '0.0.0.0' });
     console.log('✅ Fastify server listening on http://localhost:4000');
     // デバッグ: 登録されたルートを確認
     console.log(server.printRoutes());

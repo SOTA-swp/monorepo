@@ -60,7 +60,7 @@ export async function userActivityRoutes(server: FastifyInstance) {
 
   //計画をインポート  /api/plans/:planId/import POST
   server.post<{ Params: { planId: string } }>(
-    '/api/plans/:planId/import',
+    ApiRoutes.plan.import(":planId"),
     { preHandler: requireAuth },
     async (request, reply) => {
       try {
