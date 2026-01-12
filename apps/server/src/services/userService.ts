@@ -589,7 +589,7 @@ export const userService = {
     });
 
     // 構造を整形
-    return likes.map((record) => {
+    return likes.map((record: any) => {
       const plan = record.plan;
 
       // 判定ロジック
