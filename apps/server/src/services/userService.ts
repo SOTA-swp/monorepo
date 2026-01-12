@@ -351,7 +351,7 @@ export const userService = {
 
   //招待を送信
   async sendInvitation(currentUserId: string, planId: string, targetEmail: string) {
-    return prisma.$transaction(async (tx) => {
+    return prisma.$transaction(async (tx: any) => {
 
       const membership = await tx.planMember.findUnique({
         where: {
@@ -425,7 +425,7 @@ export const userService = {
 
   //招待への応答
   async respondToInvitation(userId: string, invitationId: number, accept: boolean) {
-    return prisma.$transaction(async (tx) => {
+    return prisma.$transaction(async (tx: any) => {
 
       //招待状の存在確認
       const invitation = await tx.invitation.findUnique({
@@ -505,7 +505,7 @@ export const userService = {
     }
 
     // トランザクションで「いいね」と「通知」を同時に作成
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Likeデータ作成
       const newLike = await tx.like.create({
         data: {
