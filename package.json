@@ -9,7 +9,7 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "test": "turbo test",
-    "start": "turbo start"
+    "mixed": "start cmd /k turbo dev --filter=!frontend && start cmd /k turbo start --filter=frontend"
   },
   "keywords": [],
   "author": "",
