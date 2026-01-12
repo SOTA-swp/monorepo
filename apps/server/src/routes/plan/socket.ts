@@ -20,6 +20,8 @@ export async function planSocketRoutes(server: FastifyInstance) {
     const planId = params.planId;
     
     server.log.info(`[WS Debug] Connection attempt for PlanID: ${planId}`);
+    // ヘッダーを全て出力してCookieが含まれているか確認
+    server.log.info(`[WS Debug] Headers: ${JSON.stringify(request.headers)}`);
 
     if (!planId) {
       server.log.warn('[WS Debug] No planId provided');
