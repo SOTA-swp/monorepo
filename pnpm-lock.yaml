@@ -69,7 +69,7 @@ importers:
         specifier: ^5.5.0
         version: 5.5.0(react@19.2.0)
       react-resizable-panels:
-        specifier: ^4.3.3
+        specifier: ^4.4.0
         version: 4.4.0(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       sonner:
         specifier: ^2.0.7
